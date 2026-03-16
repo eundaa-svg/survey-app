@@ -1,13 +1,11 @@
 'use client';
 
 import { Card, CardBody, CardHeader } from '@/components/ui';
-import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const DEPARTMENTS = [
   '컴퓨터공학과',
@@ -51,11 +49,7 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [nicknameCheckLoading, setNicknameCheckLoading] = useState(false);
   const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
-
-  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
-    setPin(value);
-  };
+  const [nicknameCheckMessage, setNicknameCheckMessage] = useState<string | null>(null);
 
   const checkNickname = async () => {
     if (!nickname.trim()) {
@@ -82,9 +76,10 @@ export default function SignupPage() {
 
       if (response.ok) {
         setNicknameAvailable(true);
+        setNicknameCheckMessage('사용 가능한 닉네임입니다');
       } else {
         setNicknameAvailable(false);
-        setError(data.message || '사용 불가능한 닉네임입니다');
+        setNicknameCheckMessage(data.message || '사용 불가능한 닉네임입니다');
       }
     } catch (err) {
       setError('닉네임 확인 중 오류가 발생했습니다');
@@ -156,6 +151,14 @@ export default function SignupPage() {
     }
   };
 
+  const isSignupButtonDisabled =
+    isLoading ||
+    !nickname.trim() ||
+    nicknameAvailable !== true ||
+    pin.length !== 4 ||
+    !department ||
+    !grade;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-background flex items-center justify-center px-4 py-8">
       <Card variant="form" className="w-full max-w-md">
@@ -175,16 +178,23 @@ export default function SignupPage() {
                 닉네임 (2~10자)
               </label>
               <div className="flex gap-2">
-                <Input
+                <input
                   type="text"
                   placeholder="닉네임 입력"
                   value={nickname}
                   onChange={(e) => {
                     setNickname(e.target.value);
                     setNicknameAvailable(null);
+                    setNicknameCheckMessage(null);
                   }}
                   disabled={isLoading}
-                  fullWidth
+                  className={`flex-1 px-3 py-2.5 border-2 rounded-lg outline-none transition-all text-gray-900 disabled:bg-gray-100 focus:ring-2 ${
+                    nicknameAvailable === true
+                      ? 'border-green-500 focus:border-green-500 focus:ring-green-200'
+                      : nicknameAvailable === false
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-300 focus:border-primary-500 focus:ring-primary-200'
+                  }`}
                 />
                 <Button
                   type="button"
@@ -197,15 +207,14 @@ export default function SignupPage() {
                   확인
                 </Button>
               </div>
-              {nicknameAvailable === true && (
-                <p className="text-green-600 text-sm mt-1 flex items-center gap-1">
-                  <CheckCircle2 size={14} />
-                  사용 가능한 닉네임입니다
-                </p>
-              )}
-              {nicknameAvailable === false && (
-                <p className="text-red-600 text-sm mt-1">
-                  사용 불가능한 닉네임입니다
+              {nicknameCheckMessage && (
+                <p
+                  className={`text-sm mt-1 flex items-center gap-1 ${
+                    nicknameAvailable === true ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {nicknameAvailable === true && <CheckCircle2 size={14} />}
+                  {nicknameCheckMessage}
                 </p>
               )}
             </div>
@@ -312,22 +321,22 @@ export default function SignupPage() {
             )}
 
             {/* 가입하기 버튼 */}
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              disabled={
-                isLoading ||
-                !nickname.trim() ||
-                nicknameAvailable !== true ||
-                pin.length !== 4 ||
-                !department ||
-                !grade
-              }
-              isLoading={isLoading}
-            >
-              가입하기
-            </Button>
+            <div>
+              {isSignupButtonDisabled && nicknameAvailable !== true && nickname.trim() && (
+                <p className="text-sm text-gray-600 mb-2 text-center">
+                  닉네임 중복 확인을 해주세요
+                </p>
+              )}
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                disabled={isSignupButtonDisabled}
+                isLoading={isLoading}
+              >
+                가입하기
+              </Button>
+            </div>
           </form>
 
           {/* 로그인 링크 */}
