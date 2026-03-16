@@ -1,0 +1,216 @@
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply m-0 p-0 box-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background font-sans text-gray-800 antialiased;
+    line-height: 1.5;
+  }
+
+  button {
+    @apply cursor-pointer transition-all duration-200;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply focus:outline-none;
+  }
+
+  /* 모든 선택 텍스트에 대한 스타일 */
+  ::selection {
+    @apply bg-primary-200 text-primary-900;
+  }
+}
+
+@layer components {
+  /* 구글 폼 스타일 카드: 상단 컬러 바 */
+  .card-form {
+    @apply relative bg-white rounded-xl shadow-sm overflow-hidden;
+  }
+  .card-form::before {
+    content: "";
+    @apply absolute top-0 left-0 right-0 h-1 bg-primary-500;
+  }
+
+  /* 구글 폼 스타일 카드 (포인트 바 없음) */
+  .card {
+    @apply bg-white rounded-xl shadow-sm;
+  }
+}
+
+@layer utilities {
+  /* 스켈레톤 로딩 애니메이션 */
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  /* 토스트 슬라이드 인 애니메이션 */
+  @keyframes slideIn {
+    0% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  /* Input 라벨 애니메이션 */
+  @keyframes float-label {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-1.5rem);
+      opacity: 1;
+    }
+  }
+
+  .animate-float-label {
+    animation: float-label 0.3s ease-out;
+  }
+
+  /* 밑줄 확대 애니메이션 */
+  @keyframes underline-expand {
+    0% {
+      width: 0;
+      left: 50%;
+    }
+    100% {
+      width: 100%;
+      left: 0;
+    }
+  }
+
+  .animate-underline-expand {
+    animation: underline-expand 0.3s ease-out;
+  }
+
+  /* Fade in 애니메이션 */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Bounce 애니메이션 (강조 효과) */
+  @keyframes bounce-in {
+    0% {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.3s ease-out;
+  }
+
+  /* 스크롤바 숨기기 */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* 모달 배경 fade */
+  @keyframes modalBackdropFadeIn {
+    from {
+      opacity: 0;
+      backdrop-filter: blur(0px);
+    }
+    to {
+      opacity: 1;
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  .animate-modal-backdrop {
+    animation: modalBackdropFadeIn 0.2s ease-out;
+  }
+
+  /* 펄스 애니메이션 개선 */
+  @keyframes improved-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .animate-improved-pulse {
+    animation: improved-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+/* 구글 폼 특화 스타일 */
+@layer components {
+  /* 카드 호버 효과 */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+  }
+
+  /* 입력 필드 라벨 & 밑줄 */
+  .input-underline {
+    @apply border-0 border-b-2 border-gray-300 bg-transparent focus:border-b-primary-500 focus:ring-0;
+  }
+
+  /* 버튼 아이콘 간격 */
+  .btn-with-icon {
+    @apply flex items-center justify-center gap-2;
+  }
+
+  /* 리스트 아이템 호버 */
+  .list-item-hover {
+    @apply transition-colors duration-150 hover:bg-gray-50;
+  }
+
+  /* 배지 애니메이션 */
+  .badge-pulse {
+    @apply animate-improved-pulse;
+  }
+}

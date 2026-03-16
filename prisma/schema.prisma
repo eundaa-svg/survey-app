@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== Models ====================
+// Note: SQLite does not support enums, Json, or primitive arrays.
+// - Enum fields use String with application-level validation.
+// - Array fields (interests, targetDepartments, targetGrades, selectedOptions) use String (JSON-serialized).
+// - Json fields use String.
+// Valid Role values: STUDENT | PROFESSOR | STAFF | ADMIN
+// Valid SurveyStatus values: DRAFT | ACTIVE | CLOSED | COMPLETED
+// Valid Category values: ACADEMIC | RESEARCH | CAMPUS | OTHER
+// Valid RewardType values: POINT | GIFTCARD | CUSTOM
+// Valid QuestionType values: SINGLE_CHOICE | MULTIPLE_CHOICE | SHORT_TEXT | LONG_TEXT | SCALE | MATRIX
+// Valid NotificationType values: NEW_SURVEY | REWARD | DEADLINE | REPORT | SYSTEM
+// Valid PointTransactionType values: EARN | SPEND
+
+model User {
+  id            String   @id @default(cuid())
+  nickname      String   @unique
+  pin           String   // 4자리 숫자 (문자열로 저장)
+  department    String
+  grade         Int
+  role          String   @default("STUDENT")
+  points        Int      @default(0)
+  interests     String   @default("[]") // JSON array of strings
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions           Session[]
+  surveys            Survey[]
+  responses          Response[]
+  notifications      Notification[]
+  pointTransactions  PointTransaction[]
+
+  @@index([nickname])
+  @@index([department])
+  @@index([role])
+}
+
+model Survey {
+  id                String    @id @default(cuid())
+  title             String
+  description       String
+  creatorId         String
+  creator           User      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  status            String    @default("DRAFT") // DRAFT | ACTIVE | CLOSED | COMPLETED
+  category          String    // ACADEMIC | RESEARCH | CAMPUS | OTHER
+  targetDepartments String    @default("[]") // JSON array of strings
+  targetGrades      String    @default("[]") // JSON array of ints
+  maxResponses      Int
+  currentResponses  Int       @default(0)
+  rewardType        String    // POINT | GIFTCARD | CUSTOM
+  rewardAmount      Int?
+  rewardDescription String?
+  deadline          DateTime
+  estimatedMinutes  Int
+  questions            Question[]
+  responses            Response[]
+  reports              Report[]
+  pointTransactions    PointTransaction[]
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([category])
+  @@index([deadline])
+  @@index([createdAt])
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  surveyId    String
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  orderIndex  Int
+  type        String   // SINGLE_CHOICE | MULTIPLE_CHOICE | SHORT_TEXT | LONG_TEXT | SCALE | MATRIX
+  title       String
+  description String?
+  isRequired  Boolean  @default(true)
+  options     String?  // JSON string
+  answers     Answer[]
+
+  @@index([surveyId])
+  @@index([type])
+}
+
+model Response {
+  id            String    @id @default(cuid())
+  surveyId      String
+  survey        Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  respondentId  String
+  respondent    User      @relation(fields: [respondentId], references: [id], onDelete: Cascade)
+  isCompleted   Boolean   @default(false)
+  rewardClaimed Boolean   @default(false)
+  answers       Answer[]
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@unique([surveyId, respondentId])
+  @@index([surveyId])
+  @@index([respondentId])
+  @@index([isCompleted])
+  @@index([rewardClaimed])
+  @@index([createdAt])
+}
+
+model Answer {
+  id              String   @id @default(cuid())
+  responseId      String
+  response        Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  value           String?
+  selectedOptions String?  // JSON string
+
+  @@index([responseId])
+  @@index([questionId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // NEW_SURVEY | REWARD | DEADLINE | REPORT | SYSTEM
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  linkUrl   String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  surveyId  String
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  reason    String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([surveyId])
+  @@index([createdAt])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PointTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String   // EARN | SPEND
+  amount      Int      // 항상 양수 (표시 시 type으로 +/- 결정)
+  description String
+  surveyId    String?
+  survey      Survey?  @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
