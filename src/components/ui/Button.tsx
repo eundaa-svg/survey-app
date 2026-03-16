@@ -21,7 +21,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     disabled,
     ...props
   }, ref) => {
-    const baseStyles = 'font-medium rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 flex items-center justify-center gap-2';
+    const baseStyles = 'font-medium rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 inline-flex items-center justify-center gap-2';
 
     const variantStyles = {
       primary: 'bg-primary-500 text-white hover:bg-primary-600 hover:shadow-md active:bg-primary-700 shadow-sm',
@@ -46,7 +46,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && <Loader2 size={18} className="animate-spin" />}
-        <span className={isLoading ? 'opacity-0' : 'opacity-100'}>{children}</span>
+        {!isLoading && children}
       </button>
     );
   }

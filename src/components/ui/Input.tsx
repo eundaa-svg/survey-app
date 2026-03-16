@@ -30,15 +30,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const isActive = isFocused || hasValue;
 
     return (
-      <div className={`${widthClass} group relative`}>
+      <div className={`${widthClass} group`}>
         {label && (
-          <label
-            className={`absolute left-0 transition-all duration-200 pointer-events-none ${
-              isActive
-                ? 'text-xs text-primary-500 -top-5 font-medium'
-                : 'text-base text-gray-500 top-3.5'
-            }`}
-          >
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             {label}
           </label>
         )}
@@ -47,11 +41,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           onFocus={handleFocus}
           onBlur={handleBlur}
           onChange={handleChange}
-          placeholder={placeholder || (label ? '' : '')}
-          className={`${widthClass} bg-transparent border-0 border-b-2 pb-2 pt-4 text-base transition-all duration-300 outline-none ${
+          placeholder={placeholder}
+          className={`${widthClass} bg-white border-2 rounded-lg px-3 py-2 text-base transition-all duration-300 outline-none ${
             error
-              ? 'border-b-danger text-danger focus:border-b-danger'
-              : 'border-b-gray-300 focus:border-b-primary-500 text-gray-900'
+              ? 'border-danger focus:border-danger focus:ring-2 focus:ring-red-200'
+              : 'border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 text-gray-900'
           } ${className}`}
           {...props}
         />

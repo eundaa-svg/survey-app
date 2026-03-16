@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { memoryDB } from '@/lib/memory-db';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -19,15 +20,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { nickname },
-    });
+    try {
+      const existingUser = await prisma.user.findUnique({
+        where: { nickname },
+      });
 
-    if (existingUser) {
-      return NextResponse.json(
-        { message: '이미 사용 중인 닉네임입니다', available: false },
-        { status: 400 }
-      );
+      if (existingUser) {
+        return NextResponse.json(
+          { message: '이미 사용 중인 닉네임입니다', available: false },
+          { status: 400 }
+        );
+      }
+    } catch (dbError) {
+      console.error('Database error, falling back to memory DB:', dbError);
+
+      // 메모리 DB에서 확인
+      const existingUser = memoryDB.findUserByNickname(nickname);
+      if (existingUser) {
+        return NextResponse.json(
+          { message: '이미 사용 중인 닉네임입니다', available: false },
+          { status: 400 }
+        );
+      }
     }
 
     return NextResponse.json(

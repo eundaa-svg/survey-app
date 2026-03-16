@@ -89,7 +89,7 @@ export default function LoginPage() {
                 {[0, 1, 2, 3].map((index) => (
                   <input
                     key={index}
-                    type="text"
+                    type="password"
                     inputMode="numeric"
                     maxLength={1}
                     value={pin[index] || ''}
@@ -115,7 +115,6 @@ export default function LoginPage() {
                       }
                     }}
                     className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all sm:w-14"
-                    placeholder="•"
                   />
                 ))}
               </div>
@@ -134,6 +133,7 @@ export default function LoginPage() {
               fullWidth
               isLoading={isLoading}
               disabled={isLoading || pin.length !== 4}
+              className="flex items-center justify-center"
             >
               <Lock size={18} />
               로그인
