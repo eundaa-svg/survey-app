@@ -46,6 +46,7 @@ export default function SettingsTab({ user }: { user: User }) {
   const [editUniversity, setEditUniversity] = useState(user.university || '');
   const [editDepartment, setEditDepartment] = useState(user.department || '');
   const [editGrade, setEditGrade] = useState(user.grade || 1);
+  const [editPhone, setEditPhone] = useState(user.phone || '');
 
   // 계좌 정보
   const [bank, setBank] = useState('');
@@ -57,6 +58,7 @@ export default function SettingsTab({ user }: { user: User }) {
     setEditUniversity(cu.university || '');
     setEditDepartment(cu.department || '');
     setEditGrade(cu.grade || 1);
+    setEditPhone(cu.phone || '');
     if (cu.bankInfo) {
       setBank(cu.bankInfo.bank || '');
       setAccountNumber(cu.bankInfo.accountNumber || '');
@@ -64,14 +66,29 @@ export default function SettingsTab({ user }: { user: User }) {
     }
   }, []);
 
+  const formatPhoneNumber = (value: string): string => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length <= 3) return cleaned;
+    if (cleaned.length <= 7) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7, 11)}`;
+  };
+
+  const validatePhoneNumber = (value: string): boolean => {
+    const cleaned = value.replace(/\D/g, '');
+    return cleaned.length === 11 && cleaned.startsWith('010');
+  };
+
   const handleSaveProfile = () => {
     if (!editUniversity) { showError('대학교를 선택해주세요'); return; }
     if (!editDepartment) { showError('학과를 선택해주세요'); return; }
+    if (!editPhone.trim()) { showError('전화번호를 입력해주세요'); return; }
+    if (!validatePhoneNumber(editPhone)) { showError('올바른 전화번호를 입력해주세요'); return; }
 
     const cu = JSON.parse(localStorage.getItem('currentUser') || '{}');
     cu.university = editUniversity;
     cu.department = editDepartment;
     cu.grade = editGrade;
+    cu.phone = editPhone;
     localStorage.setItem('currentUser', JSON.stringify(cu));
 
     // AuthProvider의 setUser로 즉시 반영 (헤더 업데이트)
@@ -80,6 +97,7 @@ export default function SettingsTab({ user }: { user: User }) {
       university: editUniversity,
       department: editDepartment,
       grade: editGrade,
+      phone: editPhone,
     };
     setUser(updatedUser);
 
@@ -91,6 +109,7 @@ export default function SettingsTab({ user }: { user: User }) {
     setEditUniversity(user.university || '');
     setEditDepartment(user.department || '');
     setEditGrade(user.grade || 1);
+    setEditPhone(user.phone || '');
     setEditingMode(false);
   };
 
@@ -188,6 +207,23 @@ export default function SettingsTab({ user }: { user: User }) {
                 <p className="flex-1 text-gray-900">
                   {GRADES.find((g) => g.value === user.grade)?.label || `${user.grade}학년`}
                 </p>
+              )}
+            </div>
+
+            {/* 전화번호 */}
+            <div className="flex items-center gap-4 py-4 border-b border-gray-200">
+              <label className="w-24 font-medium text-gray-700 flex-shrink-0">전화번호</label>
+              {editingMode ? (
+                <input
+                  type="text"
+                  placeholder="010-0000-0000"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(formatPhoneNumber(e.target.value))}
+                  maxLength={13}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              ) : (
+                <p className="flex-1 text-gray-900">{user.phone || '미설정'}</p>
               )}
             </div>
 

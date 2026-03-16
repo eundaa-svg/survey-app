@@ -54,6 +54,7 @@ export default function SignupPage() {
   const [pin, setPin] = useState('');
   const [department, setDepartment] = useState('');
   const [grade, setGrade] = useState('');
+  const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,6 +75,18 @@ export default function SignupPage() {
   if (isLoggedIn) {
     return null;
   }
+
+  const formatPhoneNumber = (value: string): string => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length <= 3) return cleaned;
+    if (cleaned.length <= 7) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7, 11)}`;
+  };
+
+  const validatePhoneNumber = (value: string): boolean => {
+    const cleaned = value.replace(/\D/g, '');
+    return cleaned.length === 11 && cleaned.startsWith('010');
+  };
 
   const checkNickname = () => {
     if (!nickname.trim()) {
@@ -144,9 +157,19 @@ export default function SignupPage() {
       return;
     }
 
+    if (!phone.trim()) {
+      setError('전화번호를 입력해주세요');
+      return;
+    }
+
+    if (!validatePhoneNumber(phone)) {
+      setError('올바른 전화번호를 입력해주세요');
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const success = register(nickname, pin, department, parseInt(grade), university);
+    const success = register(nickname, pin, department, parseInt(grade), university, phone);
 
     if (success) {
       setSuccess(true);
@@ -164,7 +187,8 @@ export default function SignupPage() {
     nicknameAvailable !== true ||
     pin.length !== 4 ||
     !department ||
-    !grade;
+    !grade ||
+    !validatePhoneNumber(phone);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-background flex items-center justify-center px-4 py-8">
@@ -335,6 +359,25 @@ export default function SignupPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* 전화번호 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                전화번호
+              </label>
+              <input
+                type="text"
+                placeholder="010-0000-0000"
+                value={phone}
+                onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+                disabled={isSubmitting}
+                maxLength={13}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all text-gray-900 disabled:bg-gray-100"
+              />
+              {phone && !validatePhoneNumber(phone) && (
+                <p className="text-sm text-red-600 mt-1">올바른 전화번호를 입력해주세요</p>
+              )}
             </div>
 
             {/* 에러 메시지 */}

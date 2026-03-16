@@ -10,6 +10,7 @@ export interface User {
   points: number;
   createdAt: string;
   university?: string;
+  phone?: string;
 }
 
 interface UsersData {
@@ -21,6 +22,7 @@ interface UsersData {
     grade: number;
     points: number;
     university?: string;
+    phone?: string;
     createdAt: string;
   };
 }
@@ -30,7 +32,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (nickname: string, pin: string) => boolean;
-  register: (nickname: string, pin: string, department: string, grade: number, university: string) => boolean;
+  register: (nickname: string, pin: string, department: string, grade: number, university: string, phone?: string) => boolean;
   logout: () => void;
   setUser: (user: User | null) => void;
 }
@@ -103,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = (nickname: string, pin: string, department: string, grade: number, university: string): boolean => {
+  const register = (nickname: string, pin: string, department: string, grade: number, university: string, phone?: string): boolean => {
     try {
       let users: UsersData = {};
       const usersJson = localStorage.getItem('users');
@@ -125,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         grade,
         points: 1000,
         university,
+        phone,
         createdAt: new Date().toISOString(),
       };
 
@@ -137,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         grade,
         points: 1000,
         university,
+        phone,
         createdAt: new Date().toISOString(),
       };
 
