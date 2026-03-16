@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardBody, Badge, ProgressBar, Button } from '@/components/ui';
@@ -63,35 +63,6 @@ function getCategoryLabel(category: string): string {
 
 function getDaysLeft(deadline: string): number {
   return Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-}
-
-function applySorting(surveys: Survey[], sortOption: string): Survey[] {
-  const sorted = [...surveys];
-  
-  if (sortOption === 'latest') {
-    // 최신순: createdAt 기준 내림차순 (최신이 먼저)
-    sorted.sort((a, b) => {
-      const dateA = new Date(a.createdAt || 0).getTime();
-      const dateB = new Date(b.createdAt || 0).getTime();
-      return dateB - dateA;
-    });
-  } else if (sortOption === 'deadline') {
-    // 마감임박순: deadline 기준 오름차순 (가장 빨리 마감되는 것이 먼저)
-    sorted.sort((a, b) => {
-      const dateA = new Date(a.deadline).getTime();
-      const dateB = new Date(b.deadline).getTime();
-      return dateA - dateB;
-    });
-  } else if (sortOption === 'reward') {
-    // 보상높은순: rewardAmount 기준 내림차순
-    sorted.sort((a, b) => {
-      const rewardA = a.rewardAmount || 0;
-      const rewardB = b.rewardAmount || 0;
-      return rewardB - rewardA;
-    });
-  }
-  
-  return sorted;
 }
 
 function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () => void }) {
@@ -232,15 +203,14 @@ export default function HomePage() {
   const router = useRouter();
   const { success, error } = useToast();
   const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [filteredAndSortedSurveys, setFilteredAndSortedSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedSort, setSelectedSort] = useState('latest');
+  const [sortType, setSortType] = useState('latest');
   const [showSort, setShowSort] = useState(false);
 
   useEffect(() => {
     fetchSurveys();
-  }, [selectedCategory, selectedSort]);
+  }, [selectedCategory, sortType]);
 
   const fetchSurveys = async () => {
     try {
@@ -249,17 +219,13 @@ export default function HomePage() {
       if (selectedCategory !== 'all') {
         params.append('category', selectedCategory);
       }
-      params.append('sort', selectedSort);
+      params.append('sort', sortType);
 
       const response = await fetch(`/api/surveys?${params.toString()}`);
       if (!response.ok) throw new Error('설문 조회 실패');
 
       const data = await response.json();
       setSurveys(data);
-      
-      // 클라이언트에서도 정렬 적용 (API 정렬 실패 시 대비)
-      const sorted = applySorting(data, selectedSort);
-      setFilteredAndSortedSurveys(sorted);
     } catch (err) {
       error('설문 목록을 불러올 수 없습니다');
       console.error(err);
@@ -268,12 +234,41 @@ export default function HomePage() {
     }
   };
 
+  // useMemo로 정렬된 설문 계산
+  const sortedSurveys = useMemo(() => {
+    const sorted = [...surveys];
+    
+    switch (sortType) {
+      case 'latest':
+        sorted.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA;
+        });
+        break;
+      case 'deadline':
+        sorted.sort((a, b) => {
+          const dateA = new Date(a.deadline).getTime();
+          const dateB = new Date(b.deadline).getTime();
+          return dateA - dateB;
+        });
+        break;
+      case 'reward':
+        sorted.sort((a, b) => {
+          return (b.rewardAmount || 0) - (a.rewardAmount || 0);
+        });
+        break;
+    }
+    
+    return sorted;
+  }, [surveys, sortType]);
+
   const handleCreateSurvey = () => {
     router.push('/survey/create');
   };
 
-  const handleSortChange = (sortValue: string) => {
-    setSelectedSort(sortValue);
+  const handleSortChange = (newSort: string) => {
+    setSortType(newSort);
     setShowSort(false);
   };
 
@@ -317,7 +312,7 @@ export default function HomePage() {
             onClick={() => setShowSort(!showSort)}
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition-colors"
           >
-            {SORT_OPTIONS.find((s) => s.value === selectedSort)?.label}
+            {SORT_OPTIONS.find((s) => s.value === sortType)?.label}
             <ChevronDown size={16} />
           </button>
 
@@ -328,7 +323,7 @@ export default function HomePage() {
                   key={opt.value}
                   onClick={() => handleSortChange(opt.value)}
                   className={`w-full px-4 py-2 text-sm text-left transition-colors ${
-                    selectedSort === opt.value
+                    sortType === opt.value
                       ? 'bg-primary-50 text-primary-600 font-medium'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
@@ -347,7 +342,7 @@ export default function HomePage() {
           <RefreshCw className="w-8 h-8 text-gray-400 mx-auto animate-spin" />
           <p className="text-gray-500 mt-4">로딩 중...</p>
         </div>
-      ) : filteredAndSortedSurveys.length === 0 ? (
+      ) : sortedSurveys.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 mb-4">아직 등록된 설문이 없습니다.</p>
           <p className="text-gray-400 text-sm">첫 설문을 만들어보세요!</p>
@@ -362,7 +357,7 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedSurveys.map((survey) => (
+          {sortedSurveys.map((survey) => (
             <SurveyCard key={survey.id} survey={survey} />
           ))}
         </div>

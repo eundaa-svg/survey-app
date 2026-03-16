@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Card, CardBody, Badge, ProgressBar, Button } from '@/components/ui';
 import { Clock, Users, Calendar, RefreshCw, Sparkles } from 'lucide-react';
@@ -11,6 +11,7 @@ interface Survey {
   title: string;
   description: string;
   category: string;
+  createdAt?: string;
   creator: {
     nickname: string;
     department: string;
@@ -211,7 +212,7 @@ function SurveyCard({ survey }: { survey: SurveyWithRecommendation }) {
 
 export default function RecommendedPage() {
   const { error } = useToast();
-  const [surveys, setSurveys] = useState<SurveyWithRecommendation[]>([]);
+  const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -224,20 +225,7 @@ export default function RecommendedPage() {
       const response = await fetch('/api/surveys');
       if (!response.ok) throw new Error('설문 조회 실패');
       const data = await response.json();
-      
-      // 각 설문에 추천 이유와 점수 추가
-      const withRecommendations = data.map((survey: Survey) => {
-        const { reason, score } = calculateRecommendation(survey);
-        return {
-          ...survey,
-          recommendationReason: reason,
-          recommendationScore: score,
-        };
-      });
-
-      // 추천 점수로 정렬 (높은 점수부터)
-      const sorted = [...withRecommendations].sort((a, b) => b.recommendationScore - a.recommendationScore);
-      setSurveys(sorted);
+      setSurveys(data);
     } catch (err) {
       error('추천 설문을 불러올 수 없습니다');
       console.error(err);
@@ -245,6 +233,21 @@ export default function RecommendedPage() {
       setLoading(false);
     }
   };
+
+  // useMemo로 추천 점수 계산 및 정렬
+  const sortedByRecommendation = useMemo(() => {
+    const withRecommendations = surveys.map((survey: Survey) => {
+      const { reason, score } = calculateRecommendation(survey);
+      return {
+        ...survey,
+        recommendationReason: reason,
+        recommendationScore: score,
+      };
+    });
+
+    // 추천 점수로 정렬 (높은 점수부터)
+    return withRecommendations.sort((a, b) => b.recommendationScore - a.recommendationScore);
+  }, [surveys]);
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -259,13 +262,13 @@ export default function RecommendedPage() {
           <RefreshCw className="w-8 h-8 text-gray-400 mx-auto animate-spin" />
           <p className="text-gray-500 mt-4">로딩 중...</p>
         </div>
-      ) : surveys.length === 0 ? (
+      ) : sortedByRecommendation.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500">추천 설문이 없습니다</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {surveys.map((survey) => (
+          {sortedByRecommendation.map((survey) => (
             <SurveyCard key={survey.id} survey={survey} />
           ))}
         </div>
