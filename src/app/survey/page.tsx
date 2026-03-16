@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Card, CardBody, Badge, ProgressBar, Button } from '@/components/ui';
 import { Clock, Users, Calendar, ChevronDown, RefreshCw } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
+import { loadSurveys } from '@/lib/surveyStorage';
 
 interface Survey {
   id: string;
@@ -162,13 +163,10 @@ export default function SurveyPage() {
     fetchSurveys();
   }, []);
 
-  const fetchSurveys = async () => {
+  const fetchSurveys = () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/surveys');
-      if (!response.ok) throw new Error('설문 조회 실패');
-      const data = await response.json();
-      setSurveys(data);
+      setSurveys(loadSurveys());
     } catch (err) {
       error('설문 목록을 불러올 수 없습니다');
       console.error(err);

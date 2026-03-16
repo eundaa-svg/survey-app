@@ -7,7 +7,7 @@ import { Plus, X } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/stores/toastStore';
 import { Survey, Question } from '@/utils/seedData';
-import { addSurvey } from '@/lib/surveyStorage';
+import { publishSurvey } from '@/lib/surveyStorage';
 
 const CATEGORIES = [
   { value: 'ACADEMIC', label: '학술' },
@@ -154,13 +154,12 @@ export default function CreateSurveyPage() {
         })),
       };
 
-      // surveyStorage를 통해 추가
-      addSurvey(newSurvey);
-      console.log('[create] 설문 발행 후 localStorage 확인:', localStorage.getItem('unisurvey_surveys')?.substring(0, 100));
+      // surveyStorage를 통해 발행
+      publishSurvey(newSurvey);
 
       success('설문이 발행되었습니다!');
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = '/'; // 완전 재로드로 localStorage 확실히 반영
       }, 1500);
     } catch (err) {
       showError('설문 발행 중 오류가 발생했습니다');

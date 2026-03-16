@@ -252,41 +252,49 @@ const seedSurveys: Survey[] = [
   },
 ];
 
-// 모든 설문 가져오기
-export function getAllSurveys(): Survey[] {
-  if (typeof window === 'undefined') return [];
+// ─── 핵심 함수 (모든 페이지에서 이것만 사용) ───────────────────────
+
+/** localStorage에서 설문 목록 불러오기. 없으면 시드 데이터로 초기화 */
+export function loadSurveys(): Survey[] {
+  if (typeof window === 'undefined') return seedSurveys;
   try {
     const stored = localStorage.getItem(SURVEYS_KEY);
-    if (!stored) {
-      localStorage.setItem(SURVEYS_KEY, JSON.stringify(seedSurveys));
-      return seedSurveys;
-    }
-    return JSON.parse(stored);
-  } catch (e) {
-    console.error('Failed to get surveys:', e);
-    return seedSurveys;
-  }
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  // 처음이면 시드 저장
+  saveSurveys(seedSurveys);
+  return seedSurveys;
 }
 
-// 설문 1개 가져오기
-export function getSurveyById(id: string): Survey | null {
-  const surveys = getAllSurveys();
-  return surveys.find((s) => s.id === id) || null;
-}
-
-// 새 설문 추가 (발행)
-export function addSurvey(survey: Survey): Survey {
-  const surveys = getAllSurveys();
-  surveys.unshift(survey); // 맨 앞에 추가
+/** 설문 목록 전체 저장 */
+export function saveSurveys(surveys: Survey[]) {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(SURVEYS_KEY, JSON.stringify(surveys));
-  console.log('[surveyStorage] 설문 발행 완료. key:', SURVEYS_KEY, '전체 설문 수:', surveys.length, '새 설문:', survey.id);
-  return survey;
 }
 
-// 내가 만든 설문
-export function getMySurveys(nickname: string): Survey[] {
-  return getAllSurveys().filter((s) => s.creator?.nickname === nickname);
+/** 새 설문 발행 (맨 앞에 추가) */
+export function publishSurvey(newSurvey: Survey): Survey {
+  const all = loadSurveys();
+  all.unshift(newSurvey);
+  saveSurveys(all);
+  console.log('[surveyStorage] 발행 완료. key:', SURVEYS_KEY, '총 설문 수:', all.length);
+  return newSurvey;
 }
+
+/** ID로 설문 1개 조회 */
+export function findSurvey(id: string): Survey | null {
+  return loadSurveys().find((s) => s.id === id) || null;
+}
+
+/** 내가 만든 설문 */
+export function getMySurveys(nickname: string): Survey[] {
+  return loadSurveys().filter((s) => s.creator?.nickname === nickname);
+}
+
+// ─── 하위 호환 alias ───────────────────────────────────────────────
+export const getAllSurveys = loadSurveys;
+export const getSurveyById = findSurvey;
+export const addSurvey = publishSurvey;
 
 // 응답 저장
 export function addResponse(surveyId: string, answers: Record<string, any>, nickname: string) {
@@ -301,11 +309,11 @@ export function addResponse(surveyId: string, answers: Record<string, any>, nick
     localStorage.setItem(RESPONSES_KEY, JSON.stringify(responses));
 
     // 설문의 currentResponses 증가
-    const surveys = getAllSurveys();
+    const surveys = loadSurveys();
     const idx = surveys.findIndex((s) => s.id === surveyId);
     if (idx !== -1) {
       surveys[idx].currentResponses = (surveys[idx].currentResponses || 0) + 1;
-      localStorage.setItem(SURVEYS_KEY, JSON.stringify(surveys));
+      saveSurveys(surveys);
     }
   } catch (e) {
     console.error('Failed to add response:', e);

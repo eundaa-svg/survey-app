@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Card, CardBody, Badge, ProgressBar, Button } from '@/components/ui';
 import { Clock, Users, Calendar, RefreshCw, Sparkles } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
+import { loadSurveys } from '@/lib/surveyStorage';
 
 interface Survey {
   id: string;
@@ -219,13 +220,10 @@ export default function RecommendedPage() {
     fetchRecommendedSurveys();
   }, []);
 
-  const fetchRecommendedSurveys = async () => {
+  const fetchRecommendedSurveys = () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/surveys');
-      if (!response.ok) throw new Error('설문 조회 실패');
-      const data = await response.json();
-      setSurveys(data);
+      setSurveys(loadSurveys());
     } catch (err) {
       error('추천 설문을 불러올 수 없습니다');
       console.error(err);
