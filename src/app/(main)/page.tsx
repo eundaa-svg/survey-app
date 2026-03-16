@@ -313,25 +313,33 @@ export default function HomePage() {
     // 페이지 포커스 시 데이터 새로고침
     function handleFocus() {
       const all = loadSurveys();
-      console.log('[home focus] 설문 수:', all.length);
-      setSurveys(all);
+      setSurveys(dedupSurveys(all));
       setLoading(false);
     }
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
+  const dedupSurveys = (surveys: Survey[]) => {
+    return surveys.reduce((acc: Survey[], survey) => {
+      const key = survey.title + '_' + (survey.creator?.nickname || '');
+      if (!acc.find((s) => s.title + '_' + (s.creator?.nickname || '') === key)) {
+        acc.push(survey);
+      }
+      return acc;
+    }, []);
+  };
+
   const fetchSurveys = () => {
     try {
       setLoading(true);
       const allSurveys = loadSurveys();
-      console.log('[home fetch] 설문 수:', allSurveys.length, '카테고리:', selectedCategory);
 
       const filtered = selectedCategory === 'all'
         ? allSurveys
         : allSurveys.filter((s: any) => s.category === selectedCategory);
 
-      setSurveys(filtered);
+      setSurveys(dedupSurveys(filtered));
     } catch (err) {
       error('설문 목록을 불러올 수 없습니다');
       console.error(err);
