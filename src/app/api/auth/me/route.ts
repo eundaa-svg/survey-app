@@ -4,19 +4,16 @@ import { cookies } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const userCookie = cookieStore.get('user')?.value;
+    const currentUserCookie = cookieStore.get('currentUser')?.value;
 
-    if (!userCookie) {
+    if (!currentUserCookie) {
       return NextResponse.json({ user: null }, { status: 200 });
     }
 
     try {
-      const userData = JSON.parse(userCookie);
-      // PIN은 반환하지 않음
-      const { pin, ...userWithoutPin } = userData;
-      return NextResponse.json({ user: userWithoutPin }, { status: 200 });
-    } catch (parseError) {
-      console.error('Failed to parse user cookie:', parseError);
+      const user = JSON.parse(currentUserCookie);
+      return NextResponse.json({ user }, { status: 200 });
+    } catch (e) {
       return NextResponse.json({ user: null }, { status: 200 });
     }
   } catch (error) {

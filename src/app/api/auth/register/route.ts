@@ -9,8 +9,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '필수 정보를 입력하세요' }, { status: 400 });
     }
 
-    // 유저 데이터 생성 (쿠키에 저장)
-    const userData = {
+    const cookieStore = await cookies();
+
+    // 기존 유저 목록 쿠키 읽기
+    let users: any[] = [];
+    const usersCookie = cookieStore.get('users')?.value;
+    if (usersCookie) {
+      try {
+        users = JSON.parse(usersCookie);
+      } catch (e) {
+        users = [];
+      }
+    }
+
+    // 같은 닉네임이 있는지 확인
+    if (users.some((u) => u.nickname === nickname)) {
+      return NextResponse.json(
+        { error: '이미 등록된 닉네임입니다' },
+        { status: 409 }
+      );
+    }
+
+    // 새 유저 객체 생성
+    const newUser = {
       id: crypto.randomUUID(),
       nickname,
       pin,
@@ -20,28 +41,33 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    // 쿠키에 유저 정보 저장
-    const cookieStore = await cookies();
-    cookieStore.set('user', JSON.stringify(userData), {
+    // users 배열에 추가
+    users.push(newUser);
+
+    // 쿠키에 저장
+    cookieStore.set('users', JSON.stringify(users), {
       httpOnly: true,
-      maxAge: 60 * 60 * 24 * 30, // 30일
+      maxAge: 60 * 60 * 24 * 30,
       path: '/',
     });
 
-    // 세션 토큰도 쿠키에 저장
-    const sessionToken = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    cookieStore.set('sessionToken', sessionToken, {
+    // currentUser 쿠키에 현재 유저 정보 저장 (로그인 상태)
+    const { pin: _, ...userWithoutPin } = newUser;
+    cookieStore.set('currentUser', JSON.stringify(userWithoutPin), {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 30,
       path: '/',
     });
 
     return NextResponse.json(
-      { message: '회원가입 완료', userId: userData.id },
+      { message: '회원가입 완료', userId: newUser.id },
       { status: 201 }
     );
   } catch (error) {
     console.error('Register error:', error);
-    return NextResponse.json({ error: '회원가입 중 오류가 발생했습니다' }, { status: 500 });
+    return NextResponse.json(
+      { error: '회원가입 중 오류가 발생했습니다' },
+      { status: 500 }
+    );
   }
 }

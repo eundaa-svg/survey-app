@@ -38,16 +38,18 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        nickname,
-        pin,
-        redirect: false,
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname, pin }),
       });
 
-      if (result?.ok) {
+      const data = await response.json();
+
+      if (response.ok) {
         router.push('/');
       } else {
-        setError(result?.error || '로그인에 실패했습니다');
+        setError(data.error || '로그인에 실패했습니다');
       }
     } catch (err) {
       setError('오류가 발생했습니다. 다시 시도해주세요.');
@@ -89,7 +91,7 @@ export default function LoginPage() {
                 {[0, 1, 2, 3].map((index) => (
                   <input
                     key={index}
-                    type="password"
+                    type="text"
                     inputMode="numeric"
                     maxLength={1}
                     value={pin[index] || ''}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,8 +19,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 쿠키 기반 인증이므로 서버에서 중복 체크 불가
-    // 항상 "사용 가능" 반환
+    const cookieStore = await cookies();
+
+    // users 쿠키에서 유저 목록 읽기
+    let users: any[] = [];
+    const usersCookie = cookieStore.get('users')?.value;
+    if (usersCookie) {
+      try {
+        users = JSON.parse(usersCookie);
+      } catch (e) {
+        users = [];
+      }
+    }
+
+    // 같은 닉네임이 있는지 확인
+    const exists = users.some((u) => u.nickname === nickname);
+
+    if (exists) {
+      return NextResponse.json(
+        { message: '이미 사용 중인 닉네임입니다', available: false },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { message: '사용 가능한 닉네임입니다', available: true },
       { status: 200 }

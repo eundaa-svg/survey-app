@@ -147,18 +147,8 @@ export default function SignupPage() {
 
       setSuccess(true);
 
-      // 자동 로그인
-      const loginResult = await signIn('credentials', {
-        nickname,
-        pin,
-        redirect: false,
-      });
-
-      if (loginResult?.ok) {
-        router.push('/');
-      } else {
-        router.push('/login');
-      }
+      // 회원가입 성공 후 자동으로 홈으로 이동
+      router.push('/');
     } catch (err) {
       setError('오류가 발생했습니다. 다시 시도해주세요.');
     } finally {

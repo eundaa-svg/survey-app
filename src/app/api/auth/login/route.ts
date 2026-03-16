@@ -9,49 +9,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '닉네임과 PIN을 입력하세요' }, { status: 400 });
     }
 
-    // 쿠키에서 저장된 유저 정보 읽기
     const cookieStore = await cookies();
-    const userCookie = cookieStore.get('user')?.value;
 
-    if (!userCookie) {
+    // users 쿠키에서 유저 목록 읽기
+    let users: any[] = [];
+    const usersCookie = cookieStore.get('users')?.value;
+    if (usersCookie) {
+      try {
+        users = JSON.parse(usersCookie);
+      } catch (e) {
+        users = [];
+      }
+    }
+
+    // nickname과 pin이 일치하는 유저 찾기
+    const user = users.find((u) => u.nickname === nickname && u.pin === pin);
+
+    if (!user) {
       return NextResponse.json(
-        { error: '등록되지 않은 계정입니다' },
+        { error: '닉네임 또는 PIN이 일치하지 않습니다' },
         { status: 401 }
       );
     }
 
-    try {
-      const userData = JSON.parse(userCookie);
+    // currentUser 쿠키에 유저 정보 저장
+    const { pin: _, ...userWithoutPin } = user;
+    cookieStore.set('currentUser', JSON.stringify(userWithoutPin), {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
+    });
 
-      // 닉네임과 PIN 확인
-      if (userData.nickname !== nickname || userData.pin !== pin) {
-        return NextResponse.json(
-          { error: '닉네임 또는 PIN이 잘못되었습니다' },
-          { status: 401 }
-        );
-      }
-
-      // 새 세션 토큰 생성
-      const sessionToken = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-      cookieStore.set('sessionToken', sessionToken, {
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 30, // 30일
-        path: '/',
-      });
-
-      return NextResponse.json(
-        { message: '로그인 성공', userId: userData.id },
-        { status: 200 }
-      );
-    } catch (parseError) {
-      console.error('Failed to parse user cookie:', parseError);
-      return NextResponse.json(
-        { error: '로그인 중 오류가 발생했습니다' },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json(
+      { message: '로그인 성공', userId: user.id },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: '로그인 중 오류가 발생했습니다' }, { status: 500 });
+    return NextResponse.json(
+      { error: '로그인 중 오류가 발생했습니다' },
+      { status: 500 }
+    );
   }
 }
