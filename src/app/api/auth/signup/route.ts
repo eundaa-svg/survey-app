@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,31 +27,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 닉네임 중복 확인
-    const existingUser = await prisma.user.findUnique({
-      where: { nickname },
+    // 유저 데이터 생성 (쿠키에 저장)
+    const userData = {
+      id: crypto.randomUUID(),
+      nickname,
+      pin,
+      department,
+      grade: parseInt(grade),
+      points: 1000,
+      createdAt: new Date().toISOString(),
+      role: 'STUDENT',
+    };
+
+    // 쿠키에 유저 정보 저장
+    const cookieStore = await cookies();
+    cookieStore.set('user', JSON.stringify(userData), {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 30, // 30일
+      path: '/',
     });
 
-    if (existingUser) {
-      return NextResponse.json(
-        { message: '이미 사용 중인 닉네임입니다' },
-        { status: 409 }
-      );
-    }
-
-    // 사용자 생성
-    const user = await prisma.user.create({
-      data: {
-        nickname,
-        pin,
-        department,
-        grade,
-        role: 'STUDENT',
-      },
+    // 세션 토큰도 쿠키에 저장
+    const sessionToken = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    cookieStore.set('sessionToken', sessionToken, {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
     });
 
     return NextResponse.json(
-      { message: '회원가입이 완료되었습니다', user: { id: user.id, nickname: user.nickname } },
+      {
+        message: '회원가입이 완료되었습니다',
+        user: { id: userData.id, nickname: userData.nickname },
+      },
       { status: 201 }
     );
   } catch (error) {

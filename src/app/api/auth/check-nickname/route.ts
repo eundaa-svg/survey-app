@@ -1,5 +1,3 @@
-import { prisma } from '@/lib/db';
-import { memoryDB } from '@/lib/memory-db';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -20,30 +18,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    try {
-      const existingUser = await prisma.user.findUnique({
-        where: { nickname },
-      });
-
-      if (existingUser) {
-        return NextResponse.json(
-          { message: '이미 사용 중인 닉네임입니다', available: false },
-          { status: 400 }
-        );
-      }
-    } catch (dbError) {
-      console.error('Database error, falling back to memory DB:', dbError);
-
-      // 메모리 DB에서 확인
-      const existingUser = memoryDB.findUserByNickname(nickname);
-      if (existingUser) {
-        return NextResponse.json(
-          { message: '이미 사용 중인 닉네임입니다', available: false },
-          { status: 400 }
-        );
-      }
-    }
-
+    // 쿠키 기반 인증이므로 서버에서 중복 체크 불가
+    // 항상 "사용 가능" 반환
     return NextResponse.json(
       { message: '사용 가능한 닉네임입니다', available: true },
       { status: 200 }
