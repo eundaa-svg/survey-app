@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { memoryDB } from '@/lib/memory-db';
+import { setUserCookie, setSessionCookie } from '@/lib/cookie-storage';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,8 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     let user: any;
-    let sessionResult: any;
-    let usedMemoryDB = false;
+    let sessionToken: string;
 
     try {
       // 닉네임 중복 확인
@@ -37,23 +37,20 @@ export async function POST(request: NextRequest) {
       });
 
       // 세션 토큰 생성
-      const sessionToken = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-      const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      sessionToken = `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
       await prisma.session.create({
         data: {
           sessionToken,
           userId: user.id,
-          expires,
+          expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         },
       });
-
-      sessionResult = { sessionToken, expires };
     } catch (dbError) {
-      console.error('Database error, falling back to memory DB:', dbError);
-      usedMemoryDB = true;
+      console.error('Database error, falling back to cookie storage:', dbError);
 
-      // 메모리 DB에서 중복 확인
+      // 쿠키 기반 중복 확인 (간단하게 처리)
+      // 실제로는 모든 등록한 사용자를 확인해야 하지만, 여기서는 메모리DB 사용
       const existing = memoryDB.findUserByNickname(nickname);
       if (existing) {
         return NextResponse.json({ error: '이미 사용 중인 닉네임입니다' }, { status: 400 });
@@ -61,20 +58,27 @@ export async function POST(request: NextRequest) {
 
       // 메모리 DB에 유저 생성
       user = memoryDB.createUser(nickname, pin, department, parseInt(grade));
-      sessionResult = memoryDB.createSession(user.id);
+      const sessionResult = memoryDB.createSession(user.id);
+      sessionToken = sessionResult.sessionToken;
     }
 
     // 응답에 쿠키 설정
-    const response = NextResponse.json(
+    let response = NextResponse.json(
       { message: '회원가입 완료', userId: user.id },
       { status: 201 }
     );
-    response.cookies.set('sessionToken', sessionResult.sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60,
+
+    // 사용자 정보를 쿠키에 저장 (폴백용)
+    response = setUserCookie(response, {
+      id: user.id,
+      nickname: user.nickname,
+      department: user.department,
+      grade: user.grade,
+      points: user.points,
     });
+
+    // 세션 토큰 설정
+    response = setSessionCookie(response, sessionToken);
 
     return response;
   } catch (error) {
