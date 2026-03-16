@@ -2,10 +2,11 @@
 
 import { Card, CardBody, CardHeader } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const DEPARTMENTS = [
   '컴퓨터공학과',
@@ -40,6 +41,7 @@ const GRADES = [
 
 export default function SignupPage() {
   const router = useRouter();
+  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
   const [department, setDepartment] = useState('');
@@ -50,6 +52,12 @@ export default function SignupPage() {
   const [nicknameCheckLoading, setNicknameCheckLoading] = useState(false);
   const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
   const [nicknameCheckMessage, setNicknameCheckMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthLoading && isLoggedIn) {
+      router.push('/');
+    }
+  }, [isLoggedIn, isAuthLoading, router]);
 
   const checkNickname = async () => {
     if (!nickname.trim()) {

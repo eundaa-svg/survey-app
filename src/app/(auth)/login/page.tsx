@@ -3,18 +3,25 @@
 import { Card, CardBody, CardHeader } from '@/components/ui';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, Lock } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthLoading && isLoggedIn) {
+      router.push('/');
+    }
+  }, [isLoggedIn, isAuthLoading, router]);
 
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
