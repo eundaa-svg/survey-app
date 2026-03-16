@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import MySurveysTab from './_components/MySurveysTab';
 import ParticipationsTab from './_components/ParticipationsTab';
 import PointsTab from './_components/PointsTab';
@@ -21,6 +22,14 @@ function MyPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabId>('surveys');
+  const { isLoggedIn, user, isLoading } = useAuth();
+
+  // 로그인 상태 확인
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      router.push('/login');
+    }
+  }, [isLoggedIn, isLoading, router]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -34,13 +43,34 @@ function MyPageContent() {
     router.push(`/mypage?tab=${tabId}`);
   };
 
+  // 로딩 중
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        <Skeleton width={300} height={32} />
+        <Skeleton height={48} />
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} height={100} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 비로그인 상태 (리다이렉트 중)
+  if (!isLoggedIn || !user) {
+    return null;
+  }
+
+  // 로그인 상태 - 마이페이지 표시
   return (
     <div className="min-h-screen bg-background py-6 px-4 sm:px-6 lg:px-8 pb-20 lg:pb-8">
       <div className="max-w-4xl mx-auto">
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">마이페이지</h1>
-          <p className="text-gray-600">내 설문과 정보를 관리하세요</p>
+          <p className="text-gray-600">안녕하세요, {user.nickname}님</p>
         </div>
 
         {/* 탭 네비게이션 */}
@@ -64,10 +94,10 @@ function MyPageContent() {
 
         {/* 탭 컨텐츠 */}
         <div>
-          {activeTab === 'surveys' && <MySurveysTab />}
-          {activeTab === 'participations' && <ParticipationsTab />}
-          {activeTab === 'points' && <PointsTab />}
-          {activeTab === 'settings' && <SettingsTab />}
+          {activeTab === 'surveys' && <MySurveysTab user={user} />}
+          {activeTab === 'participations' && <ParticipationsTab user={user} />}
+          {activeTab === 'points' && <PointsTab user={user} />}
+          {activeTab === 'settings' && <SettingsTab user={user} />}
         </div>
       </div>
     </div>

@@ -1,60 +1,39 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardBody, ProgressBar } from '@/components/ui';
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { useToast } from '@/stores/toastStore';
+import { Card, CardBody } from '@/components/ui';
+import { AlertCircle } from 'lucide-react';
+import { User } from '@/hooks/useAuth';
 
 interface Participation {
-  id: string;
-  survey: {
-    id: string;
-    title: string;
-    category: string;
-    rewardType: string;
-    rewardAmount?: number;
-    rewardDescription?: string;
-  };
-  isCompleted: boolean;
-  rewardClaimed: boolean;
-  completedAt?: string;
+  surveyId: string;
+  surveyTitle: string;
+  participatedAt: string;
+  pointsEarned: number;
 }
 
-export default function ParticipationsTab() {
-  const router = useRouter();
-  const { error: showError } = useToast();
+export default function ParticipationsTab({ user }: { user: User }) {
   const [participations, setParticipations] = useState<Participation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchParticipations();
-  }, []);
-
-  const fetchParticipations = async () => {
     try {
-      setLoading(true);
-      const response = await fetch('/api/users/me/participations');
-      if (response.status === 401) {
-        router.push('/login');
-        return;
+      const participationsJson = localStorage.getItem(`participations_${user.id}`);
+      if (participationsJson) {
+        const data = JSON.parse(participationsJson);
+        setParticipations(data);
       }
-      if (!response.ok) throw new Error('참여 내역 조회 실패');
-      const data = await response.json();
-      setParticipations(data);
     } catch (err) {
-      showError('참여 내역을 불러올 수 없습니다');
-      console.error(err);
+      console.error('Failed to load participations:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id]);
 
   if (loading) {
     return (
       <div className="text-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary-500" />
-        <p className="text-gray-500 mt-4">로딩 중...</p>
+        <p className="text-gray-500">로딩 중...</p>
       </div>
     );
   }
@@ -62,41 +41,30 @@ export default function ParticipationsTab() {
   if (participations.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">참여한 설문이 없습니다</p>
+        <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+        <p className="text-gray-500">아직 참여한 설문이 없습니다</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {participations.map((p) => (
-        <Card key={p.id}>
-          <CardBody className="space-y-3">
-            <div className="flex items-start justify-between gap-4">
-              <h3 className="font-semibold text-gray-900 flex-1">{p.survey.title}</h3>
-              {p.isCompleted && (
-                <div className="flex items-center gap-1 text-sm text-success font-medium flex-shrink-0">
-                  <CheckCircle size={16} />
-                  완료
-                </div>
-              )}
+      {participations.map((participation) => (
+        <Card key={participation.surveyId}>
+          <CardBody>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900">{participation.surveyTitle}</h3>
+                <p className="text-xs text-gray-400 mt-2">
+                  참여일: {new Date(participation.participatedAt).toLocaleDateString('ko-KR')}
+                </p>
+              </div>
+              <div className="ml-4 text-right">
+                <p className="text-sm font-semibold text-primary-600">
+                  +{participation.pointsEarned}P
+                </p>
+              </div>
             </div>
-
-            <div className="flex gap-4 text-sm text-gray-600">
-              <span>카테고리: {p.survey.category}</span>
-              <span>
-                포상:
-                {p.survey.rewardType === 'POINT'
-                  ? `${p.survey.rewardAmount || 0}P`
-                  : p.survey.rewardDescription}
-              </span>
-            </div>
-
-            {p.completedAt && (
-              <p className="text-xs text-gray-500">
-                완료일: {new Date(p.completedAt).toLocaleDateString('ko-KR')}
-              </p>
-            )}
           </CardBody>
         </Card>
       ))}
