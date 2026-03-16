@@ -7,6 +7,13 @@ import Modal from '@/components/ui/Modal';
 import { User } from '@/providers/AuthProvider';
 import { useToast } from '@/stores/toastStore';
 
+const UNIVERSITIES = [
+  '국민대학교', '서울대학교', '연세대학교', '고려대학교', '성균관대학교',
+  '한양대학교', '중앙대학교', '경희대학교', '건국대학교', '동국대학교',
+  '홍익대학교', '숭실대학교', '세종대학교', '광운대학교', '상명대학교',
+  '한성대학교', '서울시립대학교', '기타',
+];
+
 const BANKS = [
   '카카오뱅크', '국민', '신한', '우리', '하나',
   '농협', '기업', 'SC제일', '대구', '부산', '토스뱅크',
@@ -18,6 +25,10 @@ export default function SettingsTab({ user }: { user: User }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteCode, setDeleteCode] = useState('');
 
+  // 대학교
+  const [university, setUniversity] = useState(user.university || '');
+  const [editingUniversity, setEditingUniversity] = useState(false);
+
   // 계좌 정보
   const [bank, setBank] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -25,12 +36,22 @@ export default function SettingsTab({ user }: { user: User }) {
 
   useEffect(() => {
     const cu = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    setUniversity(cu.university || '');
     if (cu.bankInfo) {
       setBank(cu.bankInfo.bank || '');
       setAccountNumber(cu.bankInfo.accountNumber || '');
       setHolder(cu.bankInfo.holder || '');
     }
   }, []);
+
+  const handleSaveUniversity = () => {
+    if (!university) { showError('대학교를 선택해주세요'); return; }
+    const cu = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    cu.university = university;
+    localStorage.setItem('currentUser', JSON.stringify(cu));
+    setEditingUniversity(false);
+    success('대학교가 저장되었습니다');
+  };
 
   const handleSaveBankInfo = () => {
     if (!bank) { showError('은행을 선택해주세요'); return; }
@@ -62,6 +83,31 @@ export default function SettingsTab({ user }: { user: User }) {
         </CardHeader>
         <CardBody>
           <div className="space-y-0">
+            <div className="flex items-center gap-4 py-4 border-b border-gray-200">
+              <label className="w-24 font-medium text-gray-700 flex-shrink-0">대학교</label>
+              {editingUniversity ? (
+                <div className="flex flex-1 gap-2">
+                  <select
+                    value={university}
+                    onChange={(e) => setUniversity(e.target.value)}
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="">선택</option>
+                    {UNIVERSITIES.map((u) => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                  <button onClick={handleSaveUniversity} className="text-xs px-3 py-1 bg-primary-500 text-white rounded-lg">저장</button>
+                  <button onClick={() => setEditingUniversity(false)} className="text-xs px-2 py-1 text-gray-500">취소</button>
+                </div>
+              ) : (
+                <div className="flex flex-1 items-center justify-between">
+                  <p className="text-gray-900">{university || '미설정'}</p>
+                  <button onClick={() => setEditingUniversity(true)} className="text-xs text-primary-600 hover:underline">수정</button>
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center gap-4 py-4 border-b border-gray-200">
               <label className="w-24 font-medium text-gray-700 flex-shrink-0">닉네임</label>
               <p className="flex-1 text-gray-900">{user.nickname}</p>

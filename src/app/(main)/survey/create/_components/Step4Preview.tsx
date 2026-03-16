@@ -62,6 +62,7 @@ export default function Step4Preview() {
           ? new Date(step1.deadline).toISOString()
           : new Date(Date.now() + 7 * 86400000).toISOString(),
         maxResponses: step1.maxResponses || 50,
+        university: currentUser.university || '',
         currentResponses: 0,
         createdAt: new Date().toISOString(),
         status: 'ACTIVE',

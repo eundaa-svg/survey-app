@@ -8,6 +8,13 @@ import Link from 'next/link';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 
+const UNIVERSITIES = [
+  '국민대학교', '서울대학교', '연세대학교', '고려대학교', '성균관대학교',
+  '한양대학교', '중앙대학교', '경희대학교', '건국대학교', '동국대학교',
+  '홍익대학교', '숭실대학교', '세종대학교', '광운대학교', '상명대학교',
+  '한성대학교', '서울시립대학교', '기타',
+];
+
 const DEPARTMENTS = [
   '컴퓨터공학과',
   '전자공학과',
@@ -42,6 +49,7 @@ const GRADES = [
 export default function SignupPage() {
   const router = useRouter();
   const { isLoggedIn, isLoading, register } = useAuth();
+  const [university, setUniversity] = useState('');
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
   const [department, setDepartment] = useState('');
@@ -106,6 +114,11 @@ export default function SignupPage() {
     setError(null);
 
     // 유효성 검사
+    if (!university) {
+      setError('대학교를 선택해주세요');
+      return;
+    }
+
     if (!nickname.trim()) {
       setError('닉네임을 입력해주세요');
       return;
@@ -133,7 +146,7 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
 
-    const success = register(nickname, pin, department, parseInt(grade));
+    const success = register(nickname, pin, department, parseInt(grade), university);
 
     if (success) {
       setSuccess(true);
@@ -146,6 +159,7 @@ export default function SignupPage() {
 
   const isSignupButtonDisabled =
     isSubmitting ||
+    !university ||
     !nickname.trim() ||
     nicknameAvailable !== true ||
     pin.length !== 4 ||
@@ -165,6 +179,24 @@ export default function SignupPage() {
 
         <CardBody>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* 대학교 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                대학교
+              </label>
+              <select
+                value={university}
+                onChange={(e) => setUniversity(e.target.value)}
+                disabled={isSubmitting}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all text-gray-900 disabled:bg-gray-100"
+              >
+                <option value="">대학교를 선택하세요</option>
+                {UNIVERSITIES.map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+
             {/* 닉네임 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

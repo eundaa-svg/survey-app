@@ -334,10 +334,17 @@ export default function HomePage() {
     try {
       setLoading(true);
       const allSurveys = loadSurveys();
+      const cu = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const myUniversity = cu.university;
+
+      // 대학교 필터: university 없는 시드 데이터는 모두 표시, 사용자 설문은 같은 대학만
+      const byUniversity = allSurveys.filter(
+        (s: any) => !s.university || !myUniversity || s.university === myUniversity
+      );
 
       const filtered = selectedCategory === 'all'
-        ? allSurveys
-        : allSurveys.filter((s: any) => s.category === selectedCategory);
+        ? byUniversity
+        : byUniversity.filter((s: any) => s.category === selectedCategory);
 
       setSurveys(dedupSurveys(filtered));
     } catch (err) {
@@ -412,8 +419,10 @@ export default function HomePage() {
       <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white shadow-lg flex justify-between items-center">
         <div className="space-y-2">
           <p className="text-lg opacity-90">안녕하세요, {user?.nickname}님</p>
-          <h1 className="text-4xl font-bold">UniSurvey</h1>
-          <p className="text-lg opacity-90">대학 캠퍼스 내 다양한 설문에 참여하고 포인트를 획득하세요</p>
+          <h1 className="text-4xl font-bold">{user?.university ? `${user.university} UniSurvey` : 'UniSurvey'}</h1>
+          <p className="text-lg opacity-90">
+            {user?.university ? `${user.university} 캠퍼스 내 다양한 설문에 참여하고 포인트를 획득하세요` : '대학 캠퍼스 내 다양한 설문에 참여하고 포인트를 획득하세요'}
+          </p>
         </div>
         <button
           onClick={() => router.push('/survey/create')}

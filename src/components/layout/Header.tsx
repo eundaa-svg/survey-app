@@ -10,8 +10,14 @@ interface HeaderProps {
   unreadCount?: number;
 }
 
+function abbreviateUniversity(name?: string): string {
+  if (!name) return '';
+  return name.replace('학교', '');
+}
+
 const Header = ({ unreadCount = 0 }: HeaderProps) => {
   const { user, logout } = useAuth();
+  const uniShort = abbreviateUniversity(user?.university);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -25,7 +31,9 @@ const Header = ({ unreadCount = 0 }: HeaderProps) => {
             <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center text-white font-bold text-lg group-hover:bg-primary-600 transition-colors">
               U
             </div>
-            <span className="font-bold text-lg text-gray-900 hidden sm:inline">UniSurvey</span>
+            <span className="font-bold text-lg text-gray-900 hidden sm:inline">
+              {uniShort ? `${uniShort} UniSurvey` : 'UniSurvey'}
+            </span>
           </Link>
 
           {/* 중앙: 검색바 (sm 이상만) */}

@@ -92,6 +92,19 @@ function MyPageContent() {
           </div>
         </div>
 
+        {/* 대학교 미설정 안내 */}
+        {!user.university && (
+          <div className="mb-6 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 flex items-center justify-between">
+            <p className="text-sm text-orange-700 font-medium">대학교를 설정해주세요</p>
+            <button
+              onClick={() => handleTabChange('settings')}
+              className="text-xs text-primary-600 font-semibold underline"
+            >
+              설정하기
+            </button>
+          </div>
+        )}
+
         {/* 탭 컨텐츠 */}
         <div>
           {activeTab === 'surveys' && <MySurveysTab user={user} />}
