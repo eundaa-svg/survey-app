@@ -7,6 +7,7 @@ import { ChevronLeft, AlertCircle, Gift, Clock, Calendar } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/stores/toastStore';
 import { Survey, Question } from '@/utils/seedData';
+import { getSurveyById, addResponse } from '@/lib/surveyStorage';
 
 export default function SurveyDetailPage() {
   const router = useRouter();
@@ -28,15 +29,7 @@ export default function SurveyDetailPage() {
   const fetchSurvey = () => {
     try {
       setLoading(true);
-      const surveysJson = localStorage.getItem('surveys');
-      if (!surveysJson) {
-        showError('설문을 찾을 수 없습니다');
-        setLoading(false);
-        return;
-      }
-
-      const surveys = JSON.parse(surveysJson) as Survey[];
-      const found = surveys.find((s) => s.id === surveyId);
+      const found = getSurveyById(surveyId);
 
       if (!found) {
         showError('설문을 찾을 수 없습니다');
@@ -73,40 +66,8 @@ export default function SurveyDetailPage() {
     try {
       setSubmitting(true);
 
-      // 응답 데이터 구성
-      const responseData = {
-        id: `response_${Date.now()}`,
-        surveyId: survey.id,
-        userId: user.id,
-        nickname: user.nickname,
-        responses: survey.questions.map((q) => ({
-          questionId: q.id,
-          answer: answers[q.id] || '',
-        })),
-        createdAt: new Date().toISOString(),
-      };
-
-      // localStorage에 응답 저장
-      let responses = [];
-      const responsesJson = localStorage.getItem('responses');
-      if (responsesJson) {
-        responses = JSON.parse(responsesJson);
-      }
-      responses.push(responseData);
-      localStorage.setItem('responses', JSON.stringify(responses));
-
-      // 설문의 currentResponses 증가
-      const surveysJson = localStorage.getItem('surveys');
-      if (surveysJson) {
-        const surveys = JSON.parse(surveysJson) as Survey[];
-        const updatedSurveys = surveys.map((s) => {
-          if (s.id === survey.id) {
-            return { ...s, currentResponses: s.currentResponses + 1 };
-          }
-          return s;
-        });
-        localStorage.setItem('surveys', JSON.stringify(updatedSurveys));
-      }
+      // surveyStorage를 통해 응답 저장
+      addResponse(survey.id, answers, user.nickname);
 
       // 현재 사용자의 포인트 업데이트
       const usersJson = localStorage.getItem('users');

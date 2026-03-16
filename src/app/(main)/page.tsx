@@ -8,6 +8,7 @@ import { Plus, Gift, Clock, Users, Calendar, ChevronDown, RefreshCw } from 'luci
 import { useToast } from '@/stores/toastStore';
 import { useAuth } from '@/providers/AuthProvider';
 import Skeleton from '@/components/ui/Skeleton';
+import { getAllSurveys } from '@/lib/surveyStorage';
 
 interface Survey {
   id: string;
@@ -221,11 +222,19 @@ export default function HomePage() {
     }
   }, [selectedCategory, sortType, isAuthLoading, isLoggedIn, router]);
 
+  useEffect(() => {
+    // 페이지 포커스 시 데이터 새로고침
+    const handleFocus = () => {
+      fetchSurveys();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
   const fetchSurveys = () => {
     try {
       setLoading(true);
-      const surveysJson = localStorage.getItem('surveys');
-      const allSurveys = surveysJson ? JSON.parse(surveysJson) : [];
+      const allSurveys = getAllSurveys();
 
       let filtered = allSurveys;
       if (selectedCategory !== 'all') {

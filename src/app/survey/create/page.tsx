@@ -7,6 +7,7 @@ import { Plus, X } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/stores/toastStore';
 import { Survey, Question } from '@/utils/seedData';
+import { addSurvey } from '@/lib/surveyStorage';
 
 const CATEGORIES = [
   { value: 'ACADEMIC', label: '학술' },
@@ -153,25 +154,8 @@ export default function CreateSurveyPage() {
         })),
       };
 
-      // localStorage에 추가
-      const surveysJson = localStorage.getItem('surveys');
-      const surveys = surveysJson ? JSON.parse(surveysJson) : [];
-      surveys.push(newSurvey);
-      localStorage.setItem('surveys', JSON.stringify(surveys));
-
-      // 현재 사용자의 내 설문 목록에 추가
-      if (user) {
-        const mySurveysJson = localStorage.getItem(`my_surveys_${user.id}`);
-        const mySurveys = mySurveysJson ? JSON.parse(mySurveysJson) : [];
-        mySurveys.push({
-          id: newSurvey.id,
-          title: newSurvey.title,
-          description: newSurvey.description,
-          status: newSurvey.status,
-          createdAt: newSurvey.createdAt,
-        });
-        localStorage.setItem(`my_surveys_${user.id}`, JSON.stringify(mySurveys));
-      }
+      // surveyStorage를 통해 추가
+      addSurvey(newSurvey);
 
       success('설문이 발행되었습니다!');
       setTimeout(() => {

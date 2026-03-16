@@ -6,6 +6,7 @@ import { Card, CardBody, Button } from '@/components/ui';
 import { Plus, AlertCircle } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
 import { User } from '@/providers/AuthProvider';
+import { getMySurveys } from '@/lib/surveyStorage';
 
 interface Survey {
   id: string;
@@ -22,19 +23,22 @@ export default function MySurveysTab({ user }: { user: User }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // localStorage에서 내 설문 가져오기
+    // surveyStorage에서 내 설문 가져오기
     try {
-      const mySurveysJson = localStorage.getItem(`my_surveys_${user.id}`);
-      if (mySurveysJson) {
-        const mySurveys = JSON.parse(mySurveysJson);
-        setSurveys(mySurveys);
-      }
+      const mySurveys = getMySurveys(user.nickname);
+      setSurveys(mySurveys.map((s) => ({
+        id: s.id,
+        title: s.title,
+        description: s.description,
+        status: s.status,
+        createdAt: s.createdAt,
+      })));
     } catch (err) {
       console.error('Failed to load surveys:', err);
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, [user.nickname]);
 
   if (loading) {
     return (
