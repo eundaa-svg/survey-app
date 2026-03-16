@@ -96,7 +96,7 @@ function MyPageContent() {
         <div>
           {activeTab === 'surveys' && <MySurveysTab user={user} />}
           {activeTab === 'participations' && <ParticipationsTab user={user} />}
-          {activeTab === 'points' && <PointsTab user={user} />}
+          {activeTab === 'points' && <PointsTab user={user} onTabChange={(tab) => handleTabChange(tab as TabId)} />}
           {activeTab === 'settings' && <SettingsTab user={user} />}
         </div>
       </div>
