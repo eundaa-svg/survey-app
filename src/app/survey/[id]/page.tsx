@@ -90,6 +90,7 @@ export default function SurveyDetailPage() {
         id: 'point_' + Date.now(),
         type: 'earn',
         amount: rewardAmount,
+        surveyId: survey.id,
         surveyTitle: survey.title,
         date: new Date().toISOString(),
       });

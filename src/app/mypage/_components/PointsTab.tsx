@@ -8,6 +8,7 @@ interface PointRecord {
   id: string;
   type: string;
   amount: number;
+  surveyId?: string;
   surveyTitle: string;
   date: string;
 }
@@ -20,8 +21,19 @@ export default function PointsTab({ user }: { user: User }) {
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     setPoints(currentUser.points || 0);
 
-    const records = JSON.parse(localStorage.getItem('unisurvey_points') || '[]');
-    setHistory(records);
+    const records: PointRecord[] = JSON.parse(localStorage.getItem('unisurvey_points') || '[]');
+
+    // surveyTitle이 없는 경우 surveyId로 fallback 조회
+    const surveys: any[] = JSON.parse(localStorage.getItem('unisurvey_surveys') || '[]');
+    const surveyMap = Object.fromEntries(surveys.map((s) => [s.id, s]));
+
+    const enriched = records.map((r) => ({
+      ...r,
+      surveyTitle: r.surveyTitle || (r.surveyId ? surveyMap[r.surveyId]?.title : '') || '설문',
+      amount: r.amount || (r.surveyId ? surveyMap[r.surveyId]?.rewardAmount : 0) || 0,
+    }));
+
+    setHistory(enriched);
   }, []);
 
   return (
@@ -43,16 +55,23 @@ export default function PointsTab({ user }: { user: User }) {
           {history.length === 0 ? (
             <p className="text-center text-gray-500 py-4 text-sm">아직 포인트 내역이 없습니다</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-0">
               {history.map((record) => (
-                <div key={record.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                <div
+                  key={record.id}
+                  className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+                >
                   <div>
                     <p className="text-sm font-medium text-gray-900">{record.surveyTitle}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(record.date).toLocaleDateString('ko-KR')}
+                      {new Date(record.date).toLocaleDateString('ko-KR', {
+                        year: 'numeric', month: 'long', day: 'numeric',
+                      })}
                     </p>
                   </div>
-                  <p className="text-sm font-bold text-green-600">+{record.amount.toLocaleString()}P</p>
+                  <p className="text-sm font-bold text-green-600">
+                    +{record.amount.toLocaleString()}P
+                  </p>
                 </div>
               ))}
             </div>
