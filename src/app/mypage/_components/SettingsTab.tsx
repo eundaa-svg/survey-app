@@ -13,20 +13,14 @@ export default function SettingsTab({ user }: { user: User }) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteCode, setDeleteCode] = useState('');
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = () => {
     if (deleteCode !== 'delete') {
       showError('정확히 입력해주세요');
       return;
     }
-    try {
-      const response = await fetch('/api/auth/logout', { method: 'POST' });
-      if (!response.ok) throw new Error('계정 삭제 실패');
-      success('계정이 삭제되었습니다');
-      router.push('/');
-    } catch (err) {
-      showError('계정 삭제 중 오류가 발생했습니다');
-      console.error(err);
-    }
+    localStorage.removeItem('currentUser');
+    success('계정이 삭제되었습니다');
+    window.location.href = '/login';
   };
 
   return (

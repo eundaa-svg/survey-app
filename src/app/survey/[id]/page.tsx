@@ -255,17 +255,27 @@ export default function SurveyDetailPage() {
 
       {/* 질문 카드들 */}
       <div className="space-y-6">
-        {survey.questions.map((question: Question, index: number) => (
+        {survey.questions.map((question: any, index: number) => {
+          // 구/신 데이터 포맷 모두 지원
+          const qTitle = question.title || question.question || '';
+          const qType = question.type || '';
+          const isSingle = qType === 'radio' || qType === 'SINGLE_CHOICE';
+          const isMultiple = qType === 'checkbox' || qType === 'MULTIPLE_CHOICE';
+          const isText = qType === 'text' || qType === 'SHORT_TEXT';
+          const isLong = qType === 'textarea' || qType === 'LONG_TEXT';
+          const isScale = qType === 'scale' || qType === 'SCALE';
+
+          return (
           <Card key={question.id}>
             <CardBody className="space-y-4">
               <h3 className="font-semibold text-gray-900">
-                {index + 1}. {question.question}
+                {index + 1}. {qTitle}
               </h3>
 
               {/* 단일선택 */}
-              {question.type === 'radio' && (
+              {isSingle && (
                 <div className="space-y-2">
-                  {question.options?.map((option) => (
+                  {question.options?.map((option: string) => (
                     <label key={option} className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="radio"
@@ -282,9 +292,9 @@ export default function SurveyDetailPage() {
               )}
 
               {/* 복수선택 */}
-              {question.type === 'checkbox' && (
+              {isMultiple && (
                 <div className="space-y-2">
-                  {question.options?.map((option) => (
+                  {question.options?.map((option: string) => (
                     <label key={option} className="flex items-center gap-3 cursor-pointer">
                       <input
                         type="checkbox"
@@ -299,7 +309,7 @@ export default function SurveyDetailPage() {
               )}
 
               {/* 단문형 */}
-              {question.type === 'text' && (
+              {isText && (
                 <input
                   type="text"
                   value={answers[question.id] || ''}
@@ -310,7 +320,7 @@ export default function SurveyDetailPage() {
               )}
 
               {/* 장문형 */}
-              {question.type === 'textarea' && (
+              {isLong && (
                 <textarea
                   value={answers[question.id] || ''}
                   onChange={(e) => handleAnswerChange(question.id, e.target.value)}
@@ -321,11 +331,11 @@ export default function SurveyDetailPage() {
               )}
 
               {/* 척도 */}
-              {question.type === 'scale' && (
+              {isScale && (
                 <div className="space-y-3">
                   <div className="flex justify-between text-xs text-gray-500">
-                    <span>{question.scaleLabels?.min}</span>
-                    <span>{question.scaleLabels?.max}</span>
+                    <span>1 (낮음)</span>
+                    <span>5 (높음)</span>
                   </div>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((value) => (
@@ -346,7 +356,8 @@ export default function SurveyDetailPage() {
               )}
             </CardBody>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {/* 하단 제출 버튼 */}

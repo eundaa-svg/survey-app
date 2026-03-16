@@ -1,332 +1,185 @@
-import { Survey, Question } from '@/utils/seedData';
+'use client';
 
 const SURVEYS_KEY = 'unisurvey_surveys';
 const RESPONSES_KEY = 'unisurvey_responses';
 
-// 시드 데이터
-const seedSurveys: Survey[] = [
-  {
-    id: `survey_1`,
-    title: '대학생 커리어 준비 현황 조사',
-    description: '취업 준비, 인턴십, 자격증 취득, 해외경험 등 대학생의 커리어 계획에 관한 설문입니다.',
-    category: 'RESEARCH',
-    createdAt: new Date(Date.now() - 0 * 24 * 60 * 60 * 1000).toISOString(),
-    creator: { nickname: 'user1', department: '전자공학과' },
-    currentResponses: 73,
-    maxResponses: 120,
-    estimatedMinutes: 12,
-    deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    rewardType: 'POINT',
-    rewardAmount: 700,
-    status: 'ACTIVE',
-    creatorId: 'user_2',
-    questions: [
-      {
-        id: 'q1',
-        type: 'radio',
-        question: '현재 취업 준비 단계는?',
-        options: ['아직 시작 안 함', '정보 수집 중', '적극 준비 중', '이미 취업함'],
-      },
-      {
-        id: 'q2',
-        type: 'radio',
-        question: '취득한 자격증 수는?',
-        options: ['0개', '1~2개', '3~4개', '5개 이상'],
-      },
-      {
-        id: 'q3',
-        type: 'radio',
-        question: '인턴십 경험이 있나요?',
-        options: ['없음', '1회', '2회 이상'],
-      },
-      {
-        id: 'q4',
-        type: 'checkbox',
-        question: '취업 준비에서 가장 어려운 점은?',
-        options: ['정보 부족', '스펙 부족', '방향 설정', '시간 부족', '비용'],
-      },
-      {
-        id: 'q5',
-        type: 'textarea',
-        question: '추가 의견',
-      },
-    ],
-  },
-  {
-    id: `survey_2`,
-    title: '스트리밍 서비스 이용 실태 조사',
-    description: '대학생의 영상 스트리밍 서비스 이용 습관, 선호 장르, 비용 지출에 관한 설문입니다.',
-    category: 'OTHER',
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    creator: { nickname: 'admin', department: '컴퓨터공학과' },
-    currentResponses: 31,
-    maxResponses: 100,
-    estimatedMinutes: 8,
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    rewardType: 'POINT',
-    rewardAmount: 400,
-    status: 'ACTIVE',
-    creatorId: 'user_1',
-    questions: [
-      {
-        id: 'q1',
-        type: 'checkbox',
-        question: '주로 이용하는 스트리밍 서비스는?',
-        options: ['넷플릭스', '유튜브 프리미엄', '웨이브', '디즈니+', '쿠팡플레이', '기타'],
-      },
-      {
-        id: 'q2',
-        type: 'radio',
-        question: '월 평균 이용 시간은?',
-        options: ['10시간 미만', '10~30시간', '30~60시간', '60시간 이상'],
-      },
-      {
-        id: 'q3',
-        type: 'radio',
-        question: '월 지출 금액은?',
-        options: ['무료만', '1만원 미만', '1~3만원', '3만원 이상'],
-      },
-      {
-        id: 'q4',
-        type: 'scale',
-        question: '서비스 선택 시 가장 중요한 요소는?',
-        scaleMin: 1,
-        scaleMax: 5,
-        scaleLabels: { min: '전혀 중요하지 않음', max: '매우 중요함' },
-      },
-    ],
-  },
-  {
-    id: `survey_3`,
-    title: '대학 도서관 이용 패턴 분석',
-    description: '도서관 자료, 열람실, 스터디 공간 이용 현황을 파악하기 위한 학술 설문입니다.',
-    category: 'ACADEMIC',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    creator: { nickname: 'user2', department: '기계공학과' },
-    currentResponses: 52,
-    maxResponses: 120,
-    estimatedMinutes: 12,
-    deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    rewardType: 'POINT',
-    rewardAmount: 600,
-    status: 'ACTIVE',
-    creatorId: 'user_3',
-    questions: [
-      {
-        id: 'q1',
-        type: 'radio',
-        question: '도서관 주간 방문 횟수는?',
-        options: ['거의 안 감', '1~2회', '3~4회', '매일'],
-      },
-      {
-        id: 'q2',
-        type: 'checkbox',
-        question: '주로 이용하는 공간은?',
-        options: ['열람실', '스터디룸', '자료실', '카페 공간'],
-      },
-      {
-        id: 'q3',
-        type: 'scale',
-        question: '도서관 만족도는?',
-        scaleMin: 1,
-        scaleMax: 5,
-        scaleLabels: { min: '매우 불만족', max: '매우 만족' },
-      },
-      {
-        id: 'q4',
-        type: 'textarea',
-        question: '개선이 필요한 점은?',
-      },
-    ],
-  },
-  {
-    id: `survey_4`,
-    title: '2024년 캠퍼스 생활만족도 조사',
-    description: '우리 대학의 캠퍼스 시설, 학생 서비스, 커뮤니티에 대한 만족도를 조사하고 있습니다.',
-    category: 'ACADEMIC',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    creator: { nickname: 'admin', department: '컴퓨터공학과' },
-    currentResponses: 45,
-    maxResponses: 100,
-    estimatedMinutes: 10,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    rewardType: 'POINT',
-    rewardAmount: 500,
-    status: 'ACTIVE',
-    creatorId: 'user_1',
-    questions: [
-      {
-        id: 'q1',
-        type: 'scale',
-        question: '캠퍼스 시설에 만족하신가요?',
-        scaleMin: 1,
-        scaleMax: 5,
-        scaleLabels: { min: '매우 불만족', max: '매우 만족' },
-      },
-      {
-        id: 'q2',
-        type: 'checkbox',
-        question: '개선이 필요한 시설은?',
-        options: ['도서관', '학생 식당', '체육관', '강의실', '편의점', '기타'],
-      },
-      {
-        id: 'q3',
-        type: 'radio',
-        question: '학생 지원 서비스는 충분한가요?',
-        options: ['매우 부족', '부족', '적절함', '충분함'],
-      },
-    ],
-  },
-  {
-    id: `survey_5`,
-    title: '대학생 온라인 쇼핑 이용행태 연구',
-    description: 'MZ세대 대학생의 온라인 쇼핑 습관과 선호도에 관한 학술 연구입니다. 약 15분 소요됩니다.',
-    category: 'RESEARCH',
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    creator: { nickname: 'user1', department: '전자공학과' },
-    currentResponses: 28,
-    maxResponses: 80,
-    estimatedMinutes: 15,
-    deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-    rewardType: 'POINT',
-    rewardAmount: 800,
-    status: 'ACTIVE',
-    creatorId: 'user_2',
-    questions: [
-      {
-        id: 'q1',
-        type: 'checkbox',
-        question: '주로 이용하는 쇼핑 플랫폼은?',
-        options: ['쿠팡', '배민마켓', '마켓컬리', '무신사', '쿠쿠', 'GS FRESH', '기타'],
-      },
-      {
-        id: 'q2',
-        type: 'radio',
-        question: '월 평균 온라인 쇼핑 횟수는?',
-        options: ['1~2회', '3~5회', '6~10회', '10회 이상'],
-      },
-      {
-        id: 'q3',
-        type: 'scale',
-        question: '빠른 배송이 구매 결정에 미치는 영향은?',
-        scaleMin: 1,
-        scaleMax: 5,
-        scaleLabels: { min: '영향 없음', max: '매우 영향 큼' },
-      },
-    ],
-  },
-  {
-    id: `survey_6`,
-    title: '학생 식당 메뉴 개선안 설문',
-    description: '학생식당 메뉴 만족도와 개선 사항에 대한 의견을 수렴합니다. 캠퍼스 시설 개선에 반영됩니다.',
-    category: 'CAMPUS',
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    creator: { nickname: 'admin', department: '컴퓨터공학과' },
-    currentResponses: 67,
-    maxResponses: 150,
-    estimatedMinutes: 5,
-    deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    rewardType: 'POINT',
-    rewardAmount: 300,
-    status: 'ACTIVE',
-    creatorId: 'user_1',
-    questions: [
-      {
-        id: 'q1',
-        type: 'radio',
-        question: '학생 식당 메뉴에 만족하신가요?',
-        options: ['매우 불만족', '불만족', '보통', '만족', '매우 만족'],
-      },
-      {
-        id: 'q2',
-        type: 'checkbox',
-        question: '추가되었으면 하는 메뉴는?',
-        options: ['한식', '중식', '일식', '양식', '채식', '건강식', '기타'],
-      },
-      {
-        id: 'q3',
-        type: 'textarea',
-        question: '개선 의견을 작성해주세요.',
-      },
-    ],
-  },
-];
-
-// ─── 핵심 함수 (모든 페이지에서 이것만 사용) ───────────────────────
-
-/** localStorage에서 설문 목록 불러오기. 없으면 시드 데이터로 초기화 */
-export function loadSurveys(): Survey[] {
-  if (typeof window === 'undefined') return seedSurveys;
-  try {
-    const stored = localStorage.getItem(SURVEYS_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  // 처음이면 시드 저장
-  saveSurveys(seedSurveys);
-  return seedSurveys;
+function createSeedSurveys() {
+  return [
+    {
+      id: 'seed_1',
+      title: '대학생 커리어 준비 현황 조사',
+      description: '취업 준비, 인턴십, 자격증 취득, 해외경험 등 대학생의 커리어 계획에 관한 설문입니다.',
+      category: '연구',
+      creator: { nickname: 'user1', department: '전자공학과' },
+      rewardType: 'POINT',
+      rewardAmount: 700,
+      estimatedMinutes: 12,
+      deadline: new Date(Date.now() + 5 * 86400000).toISOString(),
+      maxResponses: 120,
+      currentResponses: 73,
+      createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+      status: 'ACTIVE',
+      questions: [
+        { id: 'q1', type: 'SINGLE_CHOICE', title: '현재 취업 준비 단계는?', isRequired: true, options: ['아직 시작 안 함', '정보 수집 중', '적극 준비 중', '이미 취업함'] },
+        { id: 'q2', type: 'SINGLE_CHOICE', title: '취득한 자격증 수는?', isRequired: true, options: ['0개', '1~2개', '3~4개', '5개 이상'] },
+        { id: 'q3', type: 'MULTIPLE_CHOICE', title: '취업 준비에서 가장 어려운 점은?', isRequired: true, options: ['정보 부족', '스펙 부족', '방향 설정', '시간 부족', '비용'] },
+        { id: 'q4', type: 'LONG_TEXT', title: '추가 의견을 자유롭게 작성해주세요', isRequired: false, options: [] }
+      ]
+    },
+    {
+      id: 'seed_2',
+      title: '스트리밍 서비스 이용 실태 조사',
+      description: '대학생의 영상 스트리밍 서비스 이용 습관, 선호 장르, 비용 지출에 관한 설문입니다.',
+      category: '기타',
+      creator: { nickname: 'admin', department: '컴퓨터공학과' },
+      rewardType: 'POINT',
+      rewardAmount: 400,
+      estimatedMinutes: 8,
+      deadline: new Date(Date.now() + 7 * 86400000).toISOString(),
+      maxResponses: 100,
+      currentResponses: 31,
+      createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+      status: 'ACTIVE',
+      questions: [
+        { id: 'q1', type: 'MULTIPLE_CHOICE', title: '주로 이용하는 스트리밍 서비스는?', isRequired: true, options: ['넷플릭스', '유튜브 프리미엄', '웨이브', '디즈니+', '쿠팡플레이'] },
+        { id: 'q2', type: 'SINGLE_CHOICE', title: '월 평균 이용 시간은?', isRequired: true, options: ['10시간 미만', '10~30시간', '30~60시간', '60시간 이상'] },
+        { id: 'q3', type: 'SINGLE_CHOICE', title: '월 지출 금액은?', isRequired: true, options: ['무료만', '1만원 미만', '1~3만원', '3만원 이상'] }
+      ]
+    },
+    {
+      id: 'seed_3',
+      title: '대학 도서관 이용 패턴 분석',
+      description: '도서관 자료, 열람실, 스터디 공간 이용 현황을 파악하기 위한 학술 설문입니다.',
+      category: '학술',
+      creator: { nickname: 'user2', department: '기계공학과' },
+      rewardType: 'POINT',
+      rewardAmount: 600,
+      estimatedMinutes: 12,
+      deadline: new Date(Date.now() + 10 * 86400000).toISOString(),
+      maxResponses: 120,
+      currentResponses: 52,
+      createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
+      status: 'ACTIVE',
+      questions: [
+        { id: 'q1', type: 'SINGLE_CHOICE', title: '도서관 주간 방문 횟수는?', isRequired: true, options: ['거의 안 감', '1~2회', '3~4회', '매일'] },
+        { id: 'q2', type: 'MULTIPLE_CHOICE', title: '주로 이용하는 공간은?', isRequired: true, options: ['열람실', '스터디룸', '자료실', '카페 공간'] },
+        { id: 'q3', type: 'SCALE', title: '도서관 만족도는?', isRequired: true, options: ['1', '2', '3', '4', '5'] },
+        { id: 'q4', type: 'LONG_TEXT', title: '개선이 필요한 점은?', isRequired: false, options: [] }
+      ]
+    },
+    {
+      id: 'seed_4',
+      title: '학생 식당 메뉴 개선안 설문',
+      description: '학생식당 메뉴 만족도와 개선 사항에 대한 의견을 수렴합니다.',
+      category: '캠퍼스',
+      creator: { nickname: 'admin', department: '컴퓨터공학과' },
+      rewardType: 'POINT',
+      rewardAmount: 300,
+      estimatedMinutes: 5,
+      deadline: new Date(Date.now() + 3 * 86400000).toISOString(),
+      maxResponses: 150,
+      currentResponses: 67,
+      createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+      status: 'ACTIVE',
+      questions: [
+        { id: 'q1', type: 'SCALE', title: '현재 학생식당 만족도는?', isRequired: true, options: ['1', '2', '3', '4', '5'] },
+        { id: 'q2', type: 'MULTIPLE_CHOICE', title: '개선이 필요한 부분은?', isRequired: true, options: ['맛', '가격', '메뉴 다양성', '위생', '대기 시간'] },
+        { id: 'q3', type: 'LONG_TEXT', title: '추가 의견', isRequired: false, options: [] }
+      ]
+    },
+    {
+      id: 'seed_5',
+      title: '대학생 온라인 쇼핑 이용행태 연구',
+      description: 'MZ세대 대학생의 온라인 쇼핑 습관과 선호도에 관한 학술 연구입니다.',
+      category: '연구',
+      creator: { nickname: 'user1', department: '전자공학과' },
+      rewardType: 'POINT',
+      rewardAmount: 800,
+      estimatedMinutes: 15,
+      deadline: new Date(Date.now() + 21 * 86400000).toISOString(),
+      maxResponses: 80,
+      currentResponses: 28,
+      createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
+      status: 'ACTIVE',
+      questions: [
+        { id: 'q1', type: 'SINGLE_CHOICE', title: '월 평균 온라인 쇼핑 횟수는?', isRequired: true, options: ['1회 미만', '1~3회', '4~7회', '8회 이상'] },
+        { id: 'q2', type: 'MULTIPLE_CHOICE', title: '주로 구매하는 품목은?', isRequired: true, options: ['의류', '식품', '전자기기', '도서', '생활용품', '뷰티'] },
+        { id: 'q3', type: 'SINGLE_CHOICE', title: '월 평균 지출 금액은?', isRequired: true, options: ['5만원 미만', '5~10만원', '10~20만원', '20만원 이상'] }
+      ]
+    },
+    {
+      id: 'seed_6',
+      title: '2024년 캠퍼스 생활만족도 조사',
+      description: '우리 대학의 캠퍼스 시설, 학생 서비스, 커뮤니티에 대한 만족도를 조사하고 있습니다.',
+      category: '학술',
+      creator: { nickname: 'admin', department: '컴퓨터공학과' },
+      rewardType: 'POINT',
+      rewardAmount: 500,
+      estimatedMinutes: 10,
+      deadline: new Date(Date.now() + 14 * 86400000).toISOString(),
+      maxResponses: 100,
+      currentResponses: 45,
+      createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
+      status: 'ACTIVE',
+      questions: [
+        { id: 'q1', type: 'SCALE', title: '캠퍼스 시설 만족도는?', isRequired: true, options: ['1', '2', '3', '4', '5'] },
+        { id: 'q2', type: 'SCALE', title: '학생 서비스 만족도는?', isRequired: true, options: ['1', '2', '3', '4', '5'] },
+        { id: 'q3', type: 'MULTIPLE_CHOICE', title: '가장 개선이 필요한 분야는?', isRequired: true, options: ['강의실', '도서관', '기숙사', '식당', '체육시설', '동아리 공간'] },
+        { id: 'q4', type: 'LONG_TEXT', title: '자유 의견', isRequired: false, options: [] }
+      ]
+    }
+  ];
 }
 
-/** 설문 목록 전체 저장 */
-export function saveSurveys(surveys: Survey[]) {
+export function loadSurveys() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const data = localStorage.getItem(SURVEYS_KEY);
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  const seeds = createSeedSurveys();
+  localStorage.setItem(SURVEYS_KEY, JSON.stringify(seeds));
+  return seeds;
+}
+
+export function saveSurveys(surveys: any[]) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(SURVEYS_KEY, JSON.stringify(surveys));
 }
 
-/** 새 설문 발행 (맨 앞에 추가) */
-export function publishSurvey(newSurvey: Survey): Survey {
+export function findSurvey(id: string) {
   const all = loadSurveys();
-  all.unshift(newSurvey);
+  return all.find(s => s.id === id) || null;
+}
+
+export function publishSurvey(survey: any) {
+  const all = loadSurveys();
+  all.unshift(survey);
   saveSurveys(all);
-  console.log('[surveyStorage] 발행 완료. key:', SURVEYS_KEY, '총 설문 수:', all.length);
-  return newSurvey;
 }
 
-/** ID로 설문 1개 조회 */
-export function findSurvey(id: string): Survey | null {
-  return loadSurveys().find((s) => s.id === id) || null;
+export function getMySurveys(nickname: string) {
+  return loadSurveys().filter(s => s.creator?.nickname === nickname);
 }
 
-/** 내가 만든 설문 */
-export function getMySurveys(nickname: string): Survey[] {
-  return loadSurveys().filter((s) => s.creator?.nickname === nickname);
-}
-
-// ─── 하위 호환 alias ───────────────────────────────────────────────
-export const getAllSurveys = loadSurveys;
-export const getSurveyById = findSurvey;
-export const addSurvey = publishSurvey;
-
-// 응답 저장
-export function addResponse(surveyId: string, answers: Record<string, any>, nickname: string) {
-  try {
-    const responses = JSON.parse(localStorage.getItem(RESPONSES_KEY) || '[]');
-    responses.push({
-      surveyId,
-      answers,
-      nickname,
-      createdAt: new Date().toISOString(),
-    });
-    localStorage.setItem(RESPONSES_KEY, JSON.stringify(responses));
-
-    // 설문의 currentResponses 증가
-    const surveys = loadSurveys();
-    const idx = surveys.findIndex((s) => s.id === surveyId);
-    if (idx !== -1) {
-      surveys[idx].currentResponses = (surveys[idx].currentResponses || 0) + 1;
-      saveSurveys(surveys);
-    }
-  } catch (e) {
-    console.error('Failed to add response:', e);
+export function addResponse(surveyId: string, answers: any, nickname: string) {
+  if (typeof window === 'undefined') return;
+  const responses = JSON.parse(localStorage.getItem(RESPONSES_KEY) || '[]');
+  responses.push({ surveyId, answers, nickname, createdAt: new Date().toISOString() });
+  localStorage.setItem(RESPONSES_KEY, JSON.stringify(responses));
+  const surveys = loadSurveys();
+  const idx = surveys.findIndex(s => s.id === surveyId);
+  if (idx !== -1) {
+    surveys[idx].currentResponses = (surveys[idx].currentResponses || 0) + 1;
+    saveSurveys(surveys);
   }
 }
 
-// 내가 참여한 설문
 export function getMyResponses(nickname: string) {
-  try {
-    const responses = JSON.parse(localStorage.getItem(RESPONSES_KEY) || '[]');
-    return responses.filter((r: any) => r.nickname === nickname);
-  } catch (e) {
-    console.error('Failed to get responses:', e);
-    return [];
-  }
+  if (typeof window === 'undefined') return [];
+  const responses = JSON.parse(localStorage.getItem(RESPONSES_KEY) || '[]');
+  return responses.filter((r: any) => r.nickname === nickname);
 }
