@@ -12,6 +12,7 @@ interface Survey {
   title: string;
   description: string;
   category: string;
+  createdAt?: string;
   creator: {
     nickname: string;
     department: string;
@@ -62,6 +63,35 @@ function getCategoryLabel(category: string): string {
 
 function getDaysLeft(deadline: string): number {
   return Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+function applySorting(surveys: Survey[], sortOption: string): Survey[] {
+  const sorted = [...surveys];
+  
+  if (sortOption === 'latest') {
+    // 최신순: createdAt 기준 내림차순 (최신이 먼저)
+    sorted.sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+  } else if (sortOption === 'deadline') {
+    // 마감임박순: deadline 기준 오름차순 (가장 빨리 마감되는 것이 먼저)
+    sorted.sort((a, b) => {
+      const dateA = new Date(a.deadline).getTime();
+      const dateB = new Date(b.deadline).getTime();
+      return dateA - dateB;
+    });
+  } else if (sortOption === 'reward') {
+    // 보상높은순: rewardAmount 기준 내림차순
+    sorted.sort((a, b) => {
+      const rewardA = a.rewardAmount || 0;
+      const rewardB = b.rewardAmount || 0;
+      return rewardB - rewardA;
+    });
+  }
+  
+  return sorted;
 }
 
 function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () => void }) {
@@ -202,7 +232,7 @@ export default function HomePage() {
   const router = useRouter();
   const { success, error } = useToast();
   const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [filteredSurveys, setFilteredSurveys] = useState<Survey[]>([]);
+  const [filteredAndSortedSurveys, setFilteredAndSortedSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSort, setSelectedSort] = useState('latest');
@@ -226,7 +256,10 @@ export default function HomePage() {
 
       const data = await response.json();
       setSurveys(data);
-      setFilteredSurveys(data);
+      
+      // 클라이언트에서도 정렬 적용 (API 정렬 실패 시 대비)
+      const sorted = applySorting(data, selectedSort);
+      setFilteredAndSortedSurveys(sorted);
     } catch (err) {
       error('설문 목록을 불러올 수 없습니다');
       console.error(err);
@@ -237,6 +270,11 @@ export default function HomePage() {
 
   const handleCreateSurvey = () => {
     router.push('/survey/create');
+  };
+
+  const handleSortChange = (sortValue: string) => {
+    setSelectedSort(sortValue);
+    setShowSort(false);
   };
 
   return (
@@ -255,7 +293,6 @@ export default function HomePage() {
           설문 만들기
         </Button>
       </div>
-
 
       {/* 필터 & 정렬 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap">
@@ -289,10 +326,7 @@ export default function HomePage() {
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => {
-                    setSelectedSort(opt.value);
-                    setShowSort(false);
-                  }}
+                  onClick={() => handleSortChange(opt.value)}
                   className={`w-full px-4 py-2 text-sm text-left transition-colors ${
                     selectedSort === opt.value
                       ? 'bg-primary-50 text-primary-600 font-medium'
@@ -313,7 +347,7 @@ export default function HomePage() {
           <RefreshCw className="w-8 h-8 text-gray-400 mx-auto animate-spin" />
           <p className="text-gray-500 mt-4">로딩 중...</p>
         </div>
-      ) : filteredSurveys.length === 0 ? (
+      ) : filteredAndSortedSurveys.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 mb-4">아직 등록된 설문이 없습니다.</p>
           <p className="text-gray-400 text-sm">첫 설문을 만들어보세요!</p>
@@ -328,7 +362,7 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSurveys.map((survey) => (
+          {filteredAndSortedSurveys.map((survey) => (
             <SurveyCard key={survey.id} survey={survey} />
           ))}
         </div>

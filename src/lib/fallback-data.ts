@@ -1,4 +1,6 @@
 // Fallback survey data when database is unavailable
+const now = new Date();
+
 export const fallbackSurveys = [
   {
     id: 'survey_1',
@@ -19,7 +21,8 @@ export const fallbackSurveys = [
     currentResponses: 1,
     rewardType: 'POINT',
     rewardAmount: 500,
-    deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    deadline: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     estimatedMinutes: 5,
     questions: [
       {
@@ -59,7 +62,8 @@ export const fallbackSurveys = [
     currentResponses: 0,
     rewardType: 'POINT',
     rewardAmount: 300,
-    deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    deadline: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
     estimatedMinutes: 8,
     questions: [
       {
@@ -91,7 +95,8 @@ export const fallbackSurveys = [
     currentResponses: 0,
     rewardType: 'POINT',
     rewardAmount: 1000,
-    deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    deadline: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
     estimatedMinutes: 10,
     questions: [
       {
