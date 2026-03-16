@@ -104,7 +104,7 @@ export default function Step4Preview() {
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{step1.title || '제목 없는 설문'}</h1>
-              <Badge variant="primary" size="sm">
+              <Badge variant={'primary' as any} size="sm">
                 {getCategoryLabel()}
               </Badge>
             </div>

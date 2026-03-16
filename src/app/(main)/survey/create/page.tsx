@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import StepIndicator from './_components/StepIndicator';
 import Step1BasicInfo from './_components/Step1BasicInfo';
 import Step2Questions from './_components/Step2Questions';
@@ -10,7 +10,16 @@ import { useSurveyCreateStore } from '@/stores/surveyCreateStore';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 
 export default function SurveyCreatePage() {
-  const { currentStep, step1, step2, step3 } = useSurveyCreateStore();
+  const { currentStep, step1, step2, step3, reset } = useSurveyCreateStore();
+
+  useEffect(() => {
+    reset();
+    localStorage.removeItem('survey-create-draft');
+    localStorage.removeItem('survey_draft');
+    localStorage.removeItem('survey_create_data');
+    localStorage.removeItem('surveyFormData');
+    localStorage.removeItem('survey_form');
+  }, []);
 
   // Check if any data has been entered
   const isDirty = useMemo(

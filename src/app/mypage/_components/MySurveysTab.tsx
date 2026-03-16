@@ -14,6 +14,7 @@ interface Survey {
   description: string;
   status: string;
   createdAt: string;
+  currentResponses: number;
 }
 
 export default function MySurveysTab({ user }: { user: User }) {
@@ -21,9 +22,9 @@ export default function MySurveysTab({ user }: { user: User }) {
   const { success, error: showError } = useToast();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<Survey | null>(null);
 
   useEffect(() => {
-    // surveyStorage에서 내 설문 가져오기
     try {
       const mySurveys = getMySurveys(user.nickname);
       setSurveys(mySurveys.map((s) => ({
@@ -32,6 +33,7 @@ export default function MySurveysTab({ user }: { user: User }) {
         description: s.description,
         status: s.status,
         createdAt: s.createdAt,
+        currentResponses: s.currentResponses || 0,
       })));
     } catch (err) {
       console.error('Failed to load surveys:', err);
@@ -39,6 +41,20 @@ export default function MySurveysTab({ user }: { user: User }) {
       setLoading(false);
     }
   }, [user.nickname]);
+
+  const handleDelete = (survey: Survey) => {
+    setDeleteTarget(survey);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    const all = JSON.parse(localStorage.getItem('unisurvey_surveys') || '[]');
+    const filtered = all.filter((s: any) => s.id !== deleteTarget.id);
+    localStorage.setItem('unisurvey_surveys', JSON.stringify(filtered));
+    setSurveys((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+    setDeleteTarget(null);
+    success('설문이 삭제되었습니다');
+  };
 
   if (loading) {
     return (
@@ -79,7 +95,7 @@ export default function MySurveysTab({ user }: { user: User }) {
                   생성일: {new Date(survey.createdAt).toLocaleDateString('ko-KR')}
                 </p>
               </div>
-              <div className="ml-4">
+              <div className="ml-4 flex items-center gap-2">
                 <span className={`text-xs font-medium px-3 py-1 rounded-full ${
                   survey.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-700' :
                   survey.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
@@ -87,11 +103,44 @@ export default function MySurveysTab({ user }: { user: User }) {
                 }`}>
                   {survey.status === 'DRAFT' ? '임시저장' : survey.status === 'ACTIVE' ? '진행중' : '완료'}
                 </span>
+                <button
+                  onClick={() => handleDelete(survey)}
+                  className="text-sm text-red-500 hover:text-red-700 font-medium px-2 py-1"
+                >
+                  삭제
+                </button>
               </div>
             </div>
           </CardBody>
         </Card>
       ))}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4">
+            <h3 className="text-lg font-bold text-gray-900">설문 삭제</h3>
+            <p className="text-gray-600">
+              {deleteTarget.currentResponses > 0
+                ? `이미 ${deleteTarget.currentResponses}명이 참여한 설문입니다. 삭제하더라도 참여자에게 지급된 보상은 유지됩니다. 정말 삭제하시겠습니까?`
+                : '이 설문을 삭제하시겠습니까?'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                삭제하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

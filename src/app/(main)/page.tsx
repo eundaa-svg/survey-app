@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardBody, Badge, ProgressBar, Button } from '@/components/ui';
-import { Plus, Gift, Clock, Users, Calendar, ChevronDown, RefreshCw } from 'lucide-react';
+import { Plus, Gift, Clock, Users, Calendar, ChevronDown, RefreshCw, MoreVertical } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
 import { useAuth } from '@/providers/AuthProvider';
 import Skeleton from '@/components/ui/Skeleton';
@@ -67,31 +67,99 @@ function getDaysLeft(deadline: string): number {
   return Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
-function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () => void }) {
+function SurveyCard({ survey, currentUserNickname, onDelete }: {
+  survey: Survey;
+  currentUserNickname?: string;
+  onDelete?: (id: string) => void;
+}) {
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const daysLeft = getDaysLeft(survey.deadline);
   const isUrgent = daysLeft <= 3 && daysLeft > 0;
   const isClosed = survey.status !== 'ACTIVE';
   const categoryColor = getCategoryColor(survey.category);
   const categoryLabel = getCategoryLabel(survey.category);
   const responseRatio = (survey.currentResponses / survey.maxResponses) * 100;
+  const isOwner = !!currentUserNickname && survey.creator.nickname === currentUserNickname;
 
   const rewardLabel =
     survey.rewardType === 'POINT'
       ? `${(survey.rewardAmount ?? 0).toLocaleString()}P 지급`
       : survey.rewardDescription ?? '보상 있음';
 
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(survey.id);
+    setShowDeleteModal(false);
+  };
+
+  const DeleteModal = () => (
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4">
+        <h3 className="text-lg font-bold text-gray-900">설문 삭제</h3>
+        <p className="text-gray-600">
+          {(survey.currentResponses || 0) > 0
+            ? `이미 ${survey.currentResponses}명이 참여한 설문입니다. 삭제하더라도 참여자에게 지급된 보상은 유지됩니다. 정말 삭제하시겠습니까?`
+            : '이 설문을 삭제하시겠습니까?'}
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowDeleteModal(false); }}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            취소
+          </button>
+          <button
+            onClick={confirmDelete}
+            className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+          >
+            삭제하기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   if (isClosed) {
     return (
       <div className="relative h-full group opacity-60">
-        <Card
-          className="h-full cursor-not-allowed"
-        >
+        {showDeleteModal && <DeleteModal />}
+        <Card className="h-full cursor-not-allowed">
           <CardBody className="space-y-4 h-full flex flex-col">
             <div className="flex justify-between items-start">
               <div className="flex-1" />
               <Badge variant={categoryColor as any} size="sm">
                 {categoryLabel}
               </Badge>
+              {isOwner && (
+                <div className="relative ml-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
+                    className="p-1 rounded hover:bg-gray-100 text-gray-400"
+                  >
+                    <MoreVertical size={16} />
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 mt-1 w-24 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                      <button
+                        onClick={handleDeleteClick}
+                        className="w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 text-left rounded-lg"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{survey.title}</h3>
@@ -141,6 +209,7 @@ function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () 
       className="relative h-full group cursor-pointer"
       onClick={() => { window.location.href = '/survey/' + survey.id; }}
     >
+      {showDeleteModal && <DeleteModal />}
       <Card className="h-full hover:shadow-lg hover:-translate-y-1 transition-all">
           <CardBody className="space-y-4 h-full flex flex-col">
             <div className="flex justify-between items-start">
@@ -152,6 +221,26 @@ function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () 
                 <Badge variant="danger" size="sm" className="ml-2">
                   D-{daysLeft}
                 </Badge>
+              )}
+              {isOwner && (
+                <div className="relative ml-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
+                    className="p-1 rounded hover:bg-gray-100 text-gray-400"
+                  >
+                    <MoreVertical size={16} />
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 mt-1 w-24 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                      <button
+                        onClick={handleDeleteClick}
+                        className="w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 text-left rounded-lg"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -284,6 +373,13 @@ export default function HomePage() {
     router.push('/survey/create');
   };
 
+  const handleDeleteSurvey = (surveyId: string) => {
+    const all = JSON.parse(localStorage.getItem('unisurvey_surveys') || '[]');
+    const filtered = all.filter((s: any) => s.id !== surveyId);
+    localStorage.setItem('unisurvey_surveys', JSON.stringify(filtered));
+    setSurveys((prev) => prev.filter((s) => s.id !== surveyId));
+  };
+
   const handleSortChange = (newSort: string) => {
     setSortType(newSort);
     setShowSort(false);
@@ -404,7 +500,12 @@ export default function HomePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedSurveys.map((survey) => (
-            <SurveyCard key={survey.id} survey={survey} />
+            <SurveyCard
+              key={survey.id}
+              survey={survey}
+              currentUserNickname={user?.nickname}
+              onDelete={handleDeleteSurvey}
+            />
           ))}
         </div>
       )}
