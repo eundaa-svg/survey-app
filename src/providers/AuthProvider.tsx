@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         pin,
         department,
         grade,
-        points: 0,
+        points: 1000,
         createdAt: new Date().toISOString(),
       };
 
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         nickname,
         department,
         grade,
-        points: 0,
+        points: 1000,
         createdAt: new Date().toISOString(),
       };
 

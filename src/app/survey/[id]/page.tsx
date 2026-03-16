@@ -60,47 +60,60 @@ export default function SurveyDetailPage() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!survey || !user) return;
 
     try {
       setSubmitting(true);
+      const rewardAmount = survey.rewardAmount || 0;
 
-      // surveyStorage를 통해 응답 저장
-      addResponse(survey.id, answers, user.nickname);
+      // 포인트 지급
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      currentUser.points = (currentUser.points || 0) + rewardAmount;
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-      // 현재 사용자의 포인트 업데이트
+      // users 오브젝트도 동기화
       const usersJson = localStorage.getItem('users');
       if (usersJson) {
         const users = JSON.parse(usersJson);
-        Object.keys(users).forEach((userId) => {
-          if (users[userId].id === user.id) {
-            users[userId].points = (users[userId].points || 0) + (survey.rewardAmount || 0);
+        Object.keys(users).forEach((uid) => {
+          if (users[uid].nickname === currentUser.nickname) {
+            users[uid].points = currentUser.points;
           }
         });
         localStorage.setItem('users', JSON.stringify(users));
-
-        // currentUser 업데이트
-        const updatedUser = {
-          ...user,
-          points: user.points + (survey.rewardAmount || 0),
-        };
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
       }
 
-      // 참여 내역 저장
-      let participations = [];
-      const participationsJson = localStorage.getItem(`participations_${user.id}`);
-      if (participationsJson) {
-        participations = JSON.parse(participationsJson);
-      }
-      participations.push({
+      // 포인트 내역 기록
+      const pointHistory = JSON.parse(localStorage.getItem('unisurvey_points') || '[]');
+      pointHistory.unshift({
+        id: 'point_' + Date.now(),
+        type: 'earn',
+        amount: rewardAmount,
+        surveyTitle: survey.title,
+        date: new Date().toISOString(),
+      });
+      localStorage.setItem('unisurvey_points', JSON.stringify(pointHistory));
+
+      // 응답 기록 저장
+      const responses = JSON.parse(localStorage.getItem('unisurvey_responses') || '[]');
+      responses.push({
         surveyId: survey.id,
         surveyTitle: survey.title,
-        participatedAt: new Date().toISOString(),
-        pointsEarned: survey.rewardAmount || 0,
+        nickname: currentUser.nickname,
+        answers,
+        rewardAmount,
+        createdAt: new Date().toISOString(),
       });
-      localStorage.setItem(`participations_${user.id}`, JSON.stringify(participations));
+      localStorage.setItem('unisurvey_responses', JSON.stringify(responses));
+
+      // 설문 응답수 증가
+      const surveys = JSON.parse(localStorage.getItem('unisurvey_surveys') || '[]');
+      const idx = surveys.findIndex((s: any) => s.id === survey.id);
+      if (idx !== -1) {
+        surveys[idx].currentResponses = (surveys[idx].currentResponses || 0) + 1;
+        localStorage.setItem('unisurvey_surveys', JSON.stringify(surveys));
+      }
 
       setSubmitted(true);
       success('설문 응답이 완료되었습니다!');
@@ -147,8 +160,8 @@ export default function SurveyDetailPage() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">응답 완료!</h2>
           <p className="text-gray-600 mb-2">감사합니다!</p>
-          <p className="text-primary-600 font-semibold text-lg">
-            +{survey.rewardAmount || 0}P를 받으셨습니다
+          <p className="text-green-600 font-bold text-xl">
+            +{survey.rewardAmount || 0}P가 지급되었습니다!
           </p>
           <p className="text-gray-500 text-sm mt-4">곧 홈으로 돌아갑니다...</p>
         </div>

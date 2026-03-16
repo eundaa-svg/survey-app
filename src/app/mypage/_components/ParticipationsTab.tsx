@@ -8,8 +8,8 @@ import { User } from '@/providers/AuthProvider';
 interface Participation {
   surveyId: string;
   surveyTitle: string;
-  participatedAt: string;
-  pointsEarned: number;
+  createdAt: string;
+  rewardAmount: number;
 }
 
 export default function ParticipationsTab({ user }: { user: User }) {
@@ -18,17 +18,22 @@ export default function ParticipationsTab({ user }: { user: User }) {
 
   useEffect(() => {
     try {
-      const participationsJson = localStorage.getItem(`participations_${user.id}`);
-      if (participationsJson) {
-        const data = JSON.parse(participationsJson);
-        setParticipations(data);
-      }
+      const responses = JSON.parse(localStorage.getItem('unisurvey_responses') || '[]');
+      const mine = responses
+        .filter((r: any) => r.nickname === user.nickname)
+        .map((r: any) => ({
+          surveyId: r.surveyId,
+          surveyTitle: r.surveyTitle || '설문',
+          createdAt: r.createdAt,
+          rewardAmount: r.rewardAmount || 0,
+        }));
+      setParticipations(mine.reverse());
     } catch (err) {
       console.error('Failed to load participations:', err);
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, [user.nickname]);
 
   if (loading) {
     return (
@@ -49,19 +54,19 @@ export default function ParticipationsTab({ user }: { user: User }) {
 
   return (
     <div className="space-y-4">
-      {participations.map((participation) => (
-        <Card key={participation.surveyId}>
+      {participations.map((p, i) => (
+        <Card key={p.surveyId + '_' + i}>
           <CardBody>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{participation.surveyTitle}</h3>
+                <h3 className="font-semibold text-gray-900">{p.surveyTitle}</h3>
                 <p className="text-xs text-gray-400 mt-2">
-                  참여일: {new Date(participation.participatedAt).toLocaleDateString('ko-KR')}
+                  참여일: {new Date(p.createdAt).toLocaleDateString('ko-KR')}
                 </p>
               </div>
               <div className="ml-4 text-right">
-                <p className="text-sm font-semibold text-primary-600">
-                  +{participation.pointsEarned}P
+                <p className="text-sm font-semibold text-green-600">
+                  +{p.rewardAmount}P
                 </p>
               </div>
             </div>
