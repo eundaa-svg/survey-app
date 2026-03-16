@@ -282,9 +282,22 @@ export default function HomePage() {
         </div>
         <Button
           onClick={handleCreateSurvey}
-          className="bg-white text-primary-600 hover:bg-primary-50 px-7 py-3 rounded-full font-bold flex items-center gap-2 flex-shrink-0 shadow-md"
+          style={{
+            backgroundColor: '#ffffff',
+            color: '#673ab7',
+            padding: '12px 28px',
+            borderRadius: '9999px',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            border: 'none',
+            cursor: 'pointer'
+          }}
         >
-          <Plus size={20} className="text-primary-600" />
+          <Plus size={20} color="#673ab7" />
           설문 만들기
         </Button>
       </div>
