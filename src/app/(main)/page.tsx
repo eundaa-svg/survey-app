@@ -280,26 +280,28 @@ export default function HomePage() {
           <h1 className="text-4xl font-bold">UniSurvey</h1>
           <p className="text-lg opacity-90">대학 캠퍼스 내 다양한 설문에 참여하고 포인트를 획득하세요</p>
         </div>
-        <Button
-          onClick={handleCreateSurvey}
+        <button
+          onClick={() => router.push('/survey/create')}
           style={{
-            backgroundColor: '#ffffff',
-            color: '#673ab7',
-            padding: '12px 28px',
+            backgroundColor: 'white',
+            color: '#5b21b6',
+            padding: '14px 32px',
             borderRadius: '9999px',
-            fontWeight: 'bold',
+            fontWeight: '700',
             fontSize: '16px',
             display: 'flex',
+            flexDirection: 'row',
             alignItems: 'center',
             gap: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            border: 'none',
-            cursor: 'pointer'
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            border: '2px solid white',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
           }}
         >
-          <Plus size={20} color="#673ab7" />
-          설문 만들기
-        </Button>
+          <span style={{ fontSize: '20px', color: '#5b21b6' }}>+</span>
+          <span style={{ color: '#5b21b6' }}>설문 만들기</span>
+        </button>
       </div>
 
       {/* 필터 & 정렬 */}
