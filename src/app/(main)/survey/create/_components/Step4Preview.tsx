@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import Confetti from '@/components/ui/Confetti';
 import { Card, CardBody, Badge, ProgressBar } from '@/components/ui';
 import { useSurveyCreateStore } from '@/stores/surveyCreateStore';
+import { useAuth } from '@/providers/AuthProvider';
 import { Gift, Clock, Calendar, Users, Home, CheckCircle } from 'lucide-react';
 
 export default function Step4Preview() {
   const router = useRouter();
   const { step1, step2, step3, setCurrentStep } = useSurveyCreateStore();
+  const { user } = useAuth();
   const [showConfirm, setShowConfirm] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -49,12 +51,34 @@ export default function Step4Preview() {
     setPublishing(true);
     setShowConfetti(true);
 
-    // Simulate publishing
-    setTimeout(() => {
-      // Show success toast and redirect
-      alert('설문이 발행되었습니다! 🎉');
-      router.push('/');
-    }, 1500);
+    const newSurvey = {
+      id: 'survey_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+      title: step1.title,
+      description: step1.description,
+      category: step1.category,
+      creator: { nickname: user?.nickname || '익명', department: user?.department || '미입력' },
+      rewardType: step3.rewardType,
+      rewardAmount: step3.rewardAmount,
+      estimatedMinutes: step1.estimatedMinutes,
+      deadline: step1.deadline
+        ? new Date(step1.deadline).toISOString()
+        : new Date(Date.now() + 14 * 86400000).toISOString(),
+      maxResponses: step1.maxResponses,
+      currentResponses: 0,
+      createdAt: new Date().toISOString(),
+      status: 'ACTIVE',
+      questions: step2.questions.map((q) => ({
+        ...q,
+        options: q.options?.map((o) => o.text) || [],
+      })),
+    };
+
+    const existing = JSON.parse(localStorage.getItem('unisurvey_surveys') || '[]');
+    existing.unshift(newSurvey);
+    localStorage.setItem('unisurvey_surveys', JSON.stringify(existing));
+
+    alert('설문이 발행되었습니다! 🎉');
+    window.location.href = '/';
   };
 
   return (
