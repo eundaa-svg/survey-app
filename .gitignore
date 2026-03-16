@@ -1,1 +1,15 @@
 node_modules
+.next
+.env.local
+.env*.local
+*.db
+*.db-journal
+.DS_Store
+dist
+build
+coverage
+.swp
+.swo
+*~
+.idea
+.vscode/settings.json
