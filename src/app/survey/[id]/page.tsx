@@ -7,7 +7,7 @@ import { ChevronLeft, AlertCircle, Gift, Clock, Calendar } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { useToast } from '@/stores/toastStore';
 import { Survey, Question } from '@/utils/seedData';
-import { getSurveyById, addResponse } from '@/lib/surveyStorage';
+import { findSurvey, addResponse } from '@/lib/surveyStorage';
 
 export default function SurveyDetailPage() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function SurveyDetailPage() {
   const fetchSurvey = () => {
     try {
       setLoading(true);
-      const found = getSurveyById(surveyId);
+      const found = findSurvey(surveyId);
 
       if (!found) {
         showError('설문을 찾을 수 없습니다');

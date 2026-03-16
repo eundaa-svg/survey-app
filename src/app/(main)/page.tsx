@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardBody, Badge, ProgressBar, Button } from '@/components/ui';
 import { Plus, Gift, Clock, Users, Calendar, ChevronDown, RefreshCw } from 'lucide-react';
@@ -138,11 +137,11 @@ function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () 
   }
 
   return (
-    <Link href={`/survey/${survey.id}`}>
-      <div className="relative h-full group">
-        <Card
-          className="h-full cursor-pointer group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all"
-        >
+    <div
+      className="relative h-full group cursor-pointer"
+      onClick={() => { window.location.href = '/survey/' + survey.id; }}
+    >
+      <Card className="h-full hover:shadow-lg hover:-translate-y-1 transition-all">
           <CardBody className="space-y-4 h-full flex flex-col">
             <div className="flex justify-between items-start">
               <div className="flex-1" />
@@ -192,13 +191,12 @@ function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () 
             </div>
 
             <div className="border-t border-gray-100 pt-2">
-              <ProgressBar value={responseRatio} className="h-2" />
+              <ProgressBar progress={responseRatio} className="h-2" />
               <p className="text-xs text-gray-500 mt-2">{Math.round(responseRatio)}% 완료</p>
             </div>
           </CardBody>
         </Card>
-      </div>
-    </Link>
+    </div>
   );
 }
 
