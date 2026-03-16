@@ -279,6 +279,7 @@ export function addSurvey(survey: Survey): Survey {
   const surveys = getAllSurveys();
   surveys.unshift(survey); // 맨 앞에 추가
   localStorage.setItem(SURVEYS_KEY, JSON.stringify(surveys));
+  console.log('[surveyStorage] 설문 발행 완료. key:', SURVEYS_KEY, '전체 설문 수:', surveys.length, '새 설문:', survey.id);
   return survey;
 }
 

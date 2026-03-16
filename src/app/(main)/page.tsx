@@ -223,18 +223,37 @@ export default function HomePage() {
   }, [selectedCategory, sortType, isAuthLoading, isLoggedIn, router]);
 
   useEffect(() => {
-    // 페이지 포커스 시 데이터 새로고침
-    const handleFocus = () => {
-      fetchSurveys();
-    };
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    // 페이지 포커스 시 데이터 새로고침 (self-contained, 스테일 클로저 없음)
+    function loadSurveys() {
+      const key = 'unisurvey_surveys';
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        console.log('[home focus] 설문 수:', parsed.length);
+        setSurveys(parsed);
+      } else {
+        const seeds = getAllSurveys(); // 시드 초기화 포함
+        console.log('[home focus] 시드 초기화. 설문 수:', seeds.length);
+        setSurveys(seeds);
+      }
+      setLoading(false);
+    }
+    window.addEventListener('focus', loadSurveys);
+    return () => window.removeEventListener('focus', loadSurveys);
   }, []);
 
   const fetchSurveys = () => {
     try {
       setLoading(true);
-      const allSurveys = getAllSurveys();
+      const key = 'unisurvey_surveys';
+      const stored = localStorage.getItem(key);
+      let allSurveys;
+      if (stored) {
+        allSurveys = JSON.parse(stored);
+      } else {
+        allSurveys = getAllSurveys(); // 시드 초기화 포함
+      }
+      console.log('[home fetch] 설문 수:', allSurveys.length, '카테고리:', selectedCategory);
 
       let filtered = allSurveys;
       if (selectedCategory !== 'all') {

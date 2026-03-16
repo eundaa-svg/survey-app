@@ -31,8 +31,8 @@ export interface Survey {
 }
 
 export function initializeSeedData() {
-  // 기존 데이터 확인
-  if (localStorage.getItem('surveys')) {
+  // 기존 데이터 확인 (unisurvey_surveys 또는 surveys 키 사용 여부)
+  if (localStorage.getItem('unisurvey_surveys') || localStorage.getItem('surveys')) {
     return;
   }
 
@@ -336,5 +336,5 @@ export function initializeSeedData() {
     },
   ];
 
-  localStorage.setItem('surveys', JSON.stringify(surveys));
+  localStorage.setItem('unisurvey_surveys', JSON.stringify(surveys));
 }

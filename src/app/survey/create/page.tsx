@@ -156,10 +156,11 @@ export default function CreateSurveyPage() {
 
       // surveyStorage를 통해 추가
       addSurvey(newSurvey);
+      console.log('[create] 설문 발행 후 localStorage 확인:', localStorage.getItem('unisurvey_surveys')?.substring(0, 100));
 
       success('설문이 발행되었습니다!');
       setTimeout(() => {
-        router.push('/');
+        window.location.href = '/';
       }, 1500);
     } catch (err) {
       showError('설문 발행 중 오류가 발생했습니다');
