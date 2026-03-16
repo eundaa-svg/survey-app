@@ -36,7 +36,7 @@ export default function LoginPage() {
     setPin(value);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -52,24 +52,12 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
 
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname, pin }),
-      });
+    const success = login(nickname, pin);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        login(data.user);
-        router.replace('/');
-      } else {
-        setError(data.error || '로그인에 실패했습니다');
-      }
-    } catch (err) {
-      setError('오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
+    if (success) {
+      router.replace('/');
+    } else {
+      setError('닉네임 또는 비밀번호가 일치하지 않습니다');
       setIsSubmitting(false);
     }
   };

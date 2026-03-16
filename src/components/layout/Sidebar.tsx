@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, FileText, Zap, User, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
-import { useRouter } from 'next/navigation';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -13,9 +12,7 @@ interface SidebarProps {
 
 const Sidebar = ({ isOpen = true }: SidebarProps) => {
   const pathname = usePathname();
-  const router = useRouter();
   const { isLoggedIn, logout } = useAuth();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const menuItems = [
     { label: '홈', href: '/', icon: Home },
@@ -24,17 +21,9 @@ const Sidebar = ({ isOpen = true }: SidebarProps) => {
     { label: '마이페이지', href: '/mypage', icon: User },
   ];
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      logout();
-      localStorage.clear();
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout failed:', error);
-      setIsLoggingOut(false);
-    }
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
   };
 
   if (!isLoggedIn) {
@@ -82,11 +71,10 @@ const Sidebar = ({ isOpen = true }: SidebarProps) => {
         </Link>
         <button
           onClick={handleLogout}
-          disabled={isLoggingOut}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100"
         >
           <LogOut size={20} />
-          <span>{isLoggingOut ? '로그아웃 중...' : '로그아웃'}</span>
+          <span>로그아웃</span>
         </button>
       </div>
     </aside>

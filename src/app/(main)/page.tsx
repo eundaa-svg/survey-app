@@ -203,8 +203,8 @@ function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () 
 
 export default function HomePage() {
   const router = useRouter();
-  const { success, error } = useToast();
-  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
+  const { error } = useToast();
+  const { isLoggedIn, isLoading: isAuthLoading, user } = useAuth();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -221,20 +221,18 @@ export default function HomePage() {
     }
   }, [selectedCategory, sortType, isAuthLoading, isLoggedIn, router]);
 
-  const fetchSurveys = async () => {
+  const fetchSurveys = () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams();
+      const surveysJson = localStorage.getItem('surveys');
+      const allSurveys = surveysJson ? JSON.parse(surveysJson) : [];
+
+      let filtered = allSurveys;
       if (selectedCategory !== 'all') {
-        params.append('category', selectedCategory);
+        filtered = allSurveys.filter((s: any) => s.category === selectedCategory);
       }
-      params.append('sort', sortType);
 
-      const response = await fetch(`/api/surveys?${params.toString()}`);
-      if (!response.ok) throw new Error('설문 조회 실패');
-
-      const data = await response.json();
-      setSurveys(data);
+      setSurveys(filtered);
     } catch (err) {
       error('설문 목록을 불러올 수 없습니다');
       console.error(err);
@@ -299,6 +297,7 @@ export default function HomePage() {
       {/* 상단 배너 */}
       <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white shadow-lg flex justify-between items-center">
         <div className="space-y-2">
+          <p className="text-lg opacity-90">안녕하세요, {user?.nickname}님</p>
           <h1 className="text-4xl font-bold">UniSurvey</h1>
           <p className="text-lg opacity-90">대학 캠퍼스 내 다양한 설문에 참여하고 포인트를 획득하세요</p>
         </div>

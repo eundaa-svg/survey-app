@@ -41,7 +41,7 @@ const GRADES = [
 
 export default function SignupPage() {
   const router = useRouter();
-  const { isLoggedIn, isLoading, login } = useAuth();
+  const { isLoggedIn, isLoading, register } = useAuth();
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
   const [department, setDepartment] = useState('');
@@ -67,7 +67,7 @@ export default function SignupPage() {
     return null;
   }
 
-  const checkNickname = async () => {
+  const checkNickname = () => {
     if (!nickname.trim()) {
       setError('닉네임을 입력해주세요');
       return;
@@ -82,20 +82,17 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/check-nickname', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname }),
-      });
+      const usersJson = localStorage.getItem('users');
+      const users = usersJson ? JSON.parse(usersJson) : {};
 
-      const data = await response.json();
+      const isDuplicate = Object.values(users).some((u: any) => u.nickname === nickname);
 
-      if (response.ok) {
+      if (isDuplicate) {
+        setNicknameAvailable(false);
+        setNicknameCheckMessage('이미 사용 중인 닉네임입니다');
+      } else {
         setNicknameAvailable(true);
         setNicknameCheckMessage('사용 가능한 닉네임입니다');
-      } else {
-        setNicknameAvailable(false);
-        setNicknameCheckMessage(data.message || '사용 불가능한 닉네임입니다');
       }
     } catch (err) {
       setError('닉네임 확인 중 오류가 발생했습니다');
@@ -104,7 +101,7 @@ export default function SignupPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -136,32 +133,13 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
 
-    try {
-      // 회원가입 API 호출
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nickname,
-          pin,
-          department,
-          grade: parseInt(grade),
-        }),
-      });
+    const success = register(nickname, pin, department, parseInt(grade));
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || '회원가입에 실패했습니다');
-        return;
-      }
-
+    if (success) {
       setSuccess(true);
-      login(data.user);
       router.replace('/');
-    } catch (err) {
-      setError('오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
+    } else {
+      setError('회원가입에 실패했습니다');
       setIsSubmitting(false);
     }
   };

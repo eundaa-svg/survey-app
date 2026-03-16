@@ -1,16 +1,31 @@
 'use client';
 
 import { useAuth } from '@/providers/AuthProvider';
+import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import ToastContainer from './ToastContainer';
 
+const AUTH_PAGES = ['/login', '/signup'];
+
 export default function LayoutContent({ children }: { children: React.ReactNode }) {
-  const { isLoading } = useAuth();
+  const { isLoading, isLoggedIn } = useAuth();
+  const pathname = usePathname();
+  const isAuthPage = AUTH_PAGES.some((page) => pathname.startsWith(page));
 
   if (isLoading) {
     return <div className="w-full h-full bg-background" />;
+  }
+
+  // 로그인/회원가입 페이지는 헤더/사이드바 숨김
+  if (isAuthPage) {
+    return (
+      <>
+        <main className="w-full h-full overflow-y-auto overflow-x-hidden">{children}</main>
+        <ToastContainer />
+      </>
+    );
   }
 
   return (
