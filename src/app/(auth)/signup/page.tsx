@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 
 const DEPARTMENTS = [
   '컴퓨터공학과',
@@ -41,23 +41,31 @@ const GRADES = [
 
 export default function SignupPage() {
   const router = useRouter();
-  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
+  const { isLoggedIn, isLoading, login } = useAuth();
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
   const [department, setDepartment] = useState('');
   const [grade, setGrade] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [nicknameCheckLoading, setNicknameCheckLoading] = useState(false);
   const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
   const [nicknameCheckMessage, setNicknameCheckMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthLoading && isLoggedIn) {
-      router.push('/');
+    if (!isLoading && isLoggedIn) {
+      router.replace('/');
     }
-  }, [isLoggedIn, isAuthLoading, router]);
+  }, [isLoggedIn, isLoading, router]);
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isLoggedIn) {
+    return null;
+  }
 
   const checkNickname = async () => {
     if (!nickname.trim()) {
@@ -126,7 +134,7 @@ export default function SignupPage() {
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       // 회원가입 API 호출
@@ -149,18 +157,17 @@ export default function SignupPage() {
       }
 
       setSuccess(true);
-
-      // 회원가입 성공 후 자동으로 홈으로 이동
-      router.push('/');
+      login(data.user);
+      router.replace('/');
     } catch (err) {
       setError('오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   const isSignupButtonDisabled =
-    isLoading ||
+    isSubmitting ||
     !nickname.trim() ||
     nicknameAvailable !== true ||
     pin.length !== 4 ||
@@ -195,7 +202,7 @@ export default function SignupPage() {
                     setNicknameAvailable(null);
                     setNicknameCheckMessage(null);
                   }}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   className={`flex-1 px-3 py-2.5 border-2 rounded-lg outline-none transition-all text-gray-900 disabled:bg-gray-100 focus:ring-2 ${
                     nicknameAvailable === true
                       ? 'border-green-500 focus:border-green-500 focus:ring-green-200'
@@ -208,7 +215,7 @@ export default function SignupPage() {
                   type="button"
                   variant="secondary"
                   onClick={checkNickname}
-                  disabled={!nickname.trim() || nicknameCheckLoading || isLoading}
+                  disabled={!nickname.trim() || nicknameCheckLoading || isSubmitting}
                   isLoading={nicknameCheckLoading}
                   className="flex-shrink-0"
                 >
@@ -273,7 +280,7 @@ export default function SignupPage() {
                         }
                       }
                     }}
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all disabled:bg-gray-100 sm:w-14"
                   />
                 ))}
@@ -340,7 +347,7 @@ export default function SignupPage() {
                 variant="primary"
                 fullWidth
                 disabled={isSignupButtonDisabled}
-                isLoading={isLoading}
+                isLoading={isSubmitting}
               >
                 가입하기
               </Button>

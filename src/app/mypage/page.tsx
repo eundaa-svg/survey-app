@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 import MySurveysTab from './_components/MySurveysTab';
 import ParticipationsTab from './_components/ParticipationsTab';
 import PointsTab from './_components/PointsTab';
@@ -27,7 +27,7 @@ function MyPageContent() {
   // 로그인 상태 확인
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [isLoggedIn, isLoading, router]);
 

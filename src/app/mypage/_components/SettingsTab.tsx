@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardBody, CardHeader, Button } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
-import { User } from '@/hooks/useAuth';
+import { User } from '@/providers/AuthProvider';
 import { useToast } from '@/stores/toastStore';
 
 export default function SettingsTab({ user }: { user: User }) {

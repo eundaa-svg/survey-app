@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardBody, Button } from '@/components/ui';
 import { Plus, AlertCircle } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
-import { User } from '@/hooks/useAuth';
+import { User } from '@/providers/AuthProvider';
 
 interface Survey {
   id: string;

@@ -6,7 +6,8 @@ import BottomNav from "@/components/layout/BottomNav";
 import ToastContainer from "@/components/layout/ToastContainer";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import Providers from "@/components/Providers";
-import AuthGuard from "@/components/layout/AuthGuard";
+import { AuthProvider } from "@/providers/AuthProvider";
+import LayoutContent from "@/components/layout/LayoutContent";
 
 export const metadata: Metadata = {
   title: "설문조사 앱",
@@ -22,17 +23,11 @@ export default function RootLayout({
     <html lang="ko">
       <body className="h-screen overflow-hidden">
         <Providers>
-          <ErrorBoundary>
-            <AuthGuard>
-              <Header />
-              <Sidebar />
-              <main className="fixed inset-0 top-16 lg:left-64 overflow-y-auto overflow-x-hidden pb-20 lg:pb-0">
-                {children}
-              </main>
-              <BottomNav />
-              <ToastContainer />
-            </AuthGuard>
-          </ErrorBoundary>
+          <AuthProvider>
+            <ErrorBoundary>
+              <LayoutContent>{children}</LayoutContent>
+            </ErrorBoundary>
+          </AuthProvider>
         </Providers>
       </body>
     </html>

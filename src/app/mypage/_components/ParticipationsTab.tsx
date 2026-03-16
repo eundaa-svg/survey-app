@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardBody } from '@/components/ui';
 import { AlertCircle } from 'lucide-react';
-import { User } from '@/hooks/useAuth';
+import { User } from '@/providers/AuthProvider';
 
 interface Participation {
   surveyId: string;

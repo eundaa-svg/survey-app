@@ -7,21 +7,29 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AlertCircle, Lock } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
+  const { isLoggedIn, isLoading, login } = useAuth();
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isAuthLoading && isLoggedIn) {
-      router.push('/');
+    if (!isLoading && isLoggedIn) {
+      router.replace('/');
     }
-  }, [isLoggedIn, isAuthLoading, router]);
+  }, [isLoggedIn, isLoading, router]);
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isLoggedIn) {
+    return null;
+  }
 
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
@@ -42,7 +50,7 @@ export default function LoginPage() {
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -54,14 +62,15 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        router.push('/');
+        login(data.user);
+        router.replace('/');
       } else {
         setError(data.error || '로그인에 실패했습니다');
       }
     } catch (err) {
       setError('오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -152,8 +161,8 @@ export default function LoginPage() {
               type="submit"
               variant="primary"
               fullWidth
-              isLoading={isLoading}
-              disabled={isLoading || pin.length !== 4}
+              isLoading={isSubmitting}
+              disabled={isSubmitting || pin.length !== 4}
               className="flex items-center justify-center"
             >
               <Lock size={18} />

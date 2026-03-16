@@ -2,7 +2,7 @@
 
 import { Card, CardBody, CardHeader } from '@/components/ui';
 import { TrendingUp } from 'lucide-react';
-import { User } from '@/hooks/useAuth';
+import { User } from '@/providers/AuthProvider';
 
 export default function PointsTab({ user }: { user: User }) {
   return (

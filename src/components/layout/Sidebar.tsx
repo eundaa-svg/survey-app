@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, FileText, Zap, User, Settings, LogOut } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/providers/AuthProvider';
+import { useRouter } from 'next/navigation';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -12,7 +13,8 @@ interface SidebarProps {
 
 const Sidebar = ({ isOpen = true }: SidebarProps) => {
   const pathname = usePathname();
-  const { isLoggedIn } = useAuth();
+  const router = useRouter();
+  const { isLoggedIn, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const menuItems = [
@@ -26,6 +28,7 @@ const Sidebar = ({ isOpen = true }: SidebarProps) => {
     setIsLoggingOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
+      logout();
       localStorage.clear();
       window.location.href = '/login';
     } catch (error) {

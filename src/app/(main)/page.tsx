@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Card, CardBody, Badge, ProgressBar, Button } from '@/components/ui';
 import { Plus, Gift, Clock, Users, Calendar, ChevronDown, RefreshCw } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
+import { useAuth } from '@/providers/AuthProvider';
+import Skeleton from '@/components/ui/Skeleton';
 
 interface Survey {
   id: string;
@@ -202,6 +204,7 @@ function SurveyCard({ survey, onResponded }: { survey: Survey; onResponded?: () 
 export default function HomePage() {
   const router = useRouter();
   const { success, error } = useToast();
+  const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -209,8 +212,14 @@ export default function HomePage() {
   const [showSort, setShowSort] = useState(false);
 
   useEffect(() => {
-    fetchSurveys();
-  }, [selectedCategory, sortType]);
+    if (!isAuthLoading && !isLoggedIn) {
+      router.replace('/login');
+      return;
+    }
+    if (!isAuthLoading) {
+      fetchSurveys();
+    }
+  }, [selectedCategory, sortType, isAuthLoading, isLoggedIn, router]);
 
   const fetchSurveys = async () => {
     try {
@@ -271,6 +280,19 @@ export default function HomePage() {
     setSortType(newSort);
     setShowSort(false);
   };
+
+  if (isAuthLoading || !isLoggedIn) {
+    return (
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <Skeleton height={200} className="rounded-2xl" />
+        <div className="space-y-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} height={100} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
