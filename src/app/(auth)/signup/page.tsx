@@ -248,15 +248,26 @@ export default function SignupPage() {
                       }
                     }}
                     onKeyDown={(e) => {
-                      // 백스페이스 처리
-                      if (e.key === 'Backspace' && !pin[index] && index > 0) {
-                        const prevInput = (e.target as HTMLInputElement).parentElement?.children[index - 1] as HTMLInputElement;
-                        prevInput?.focus();
+                      // 백스페이스 또는 Delete 처리
+                      if (e.key === 'Backspace' || e.key === 'Delete') {
+                        e.preventDefault();
+                        if (pin[index]) {
+                          // 현재 칸에 값이 있으면 삭제
+                          const newPin = pin.split('');
+                          newPin[index] = '';
+                          setPin(newPin.join('').slice(0, 4));
+                        } else if (index > 0) {
+                          // 현재 칸이 비어있으면 이전 칸으로 이동하고 그 칸 값 삭제
+                          const prevInput = (e.target as HTMLInputElement).parentElement?.children[index - 1] as HTMLInputElement;
+                          const newPin = pin.split('');
+                          newPin[index - 1] = '';
+                          setPin(newPin.join('').slice(0, 4));
+                          prevInput?.focus();
+                        }
                       }
                     }}
                     disabled={isLoading}
                     className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all disabled:bg-gray-100 sm:w-14"
-                    placeholder="•"
                   />
                 ))}
               </div>

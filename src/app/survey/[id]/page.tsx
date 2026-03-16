@@ -357,21 +357,21 @@ export default function SurveyDetailPage() {
       </div>
 
       {/* 제출 버튼 */}
-      <div className="mt-8 flex gap-3 sticky bottom-0 bg-white py-4 border-t border-gray-200">
+      <div className="mt-8 flex justify-end gap-3 sticky bottom-0 bg-white py-4 border-t border-gray-200">
         <Button
-          variant="secondary"
-          fullWidth
+          variant="ghost"
           onClick={() => router.back()}
           disabled={submitting}
+          className="px-8 py-3"
         >
           취소
         </Button>
         <Button
           variant="primary"
-          fullWidth
           onClick={handleSubmit}
           isLoading={submitting}
           disabled={submitting}
+          className="px-8 py-3"
         >
           {submitting ? '제출 중...' : '응답 제출'}
         </Button>

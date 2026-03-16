@@ -210,7 +210,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchSurveys();
-  }, []);
+  }, [selectedCategory, selectedSort]);
 
   const fetchSurveys = async () => {
     try {
@@ -242,20 +242,20 @@ export default function HomePage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* 상단 배너 */}
-      <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white space-y-4 shadow-lg">
-        <h1 className="text-4xl font-bold">UniSurvey</h1>
-        <p className="text-lg opacity-90">대학 캠퍼스 내 다양한 설문에 참여하고 포인트를 획득하세요</p>
-        <div className="flex gap-3 pt-4 flex-wrap">
-          <Button
-            variant="light"
-            onClick={handleCreateSurvey}
-            className="flex items-center gap-2"
-          >
-            <Plus size={20} />
-            설문 만들기
-          </Button>
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-8 text-white shadow-lg flex justify-between items-center">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold">UniSurvey</h1>
+          <p className="text-lg opacity-90">대학 캠퍼스 내 다양한 설문에 참여하고 포인트를 획득하세요</p>
         </div>
+        <Button
+          onClick={handleCreateSurvey}
+          className="bg-white text-primary-600 hover:bg-gray-100 px-6 py-3 rounded-full font-semibold flex items-center gap-2 flex-shrink-0"
+        >
+          <Plus size={20} />
+          설문 만들기
+        </Button>
       </div>
+
 
       {/* 필터 & 정렬 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap">
