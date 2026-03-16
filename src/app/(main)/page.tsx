@@ -26,6 +26,9 @@ interface Survey {
   rewardType: string;
   rewardAmount?: number;
   rewardDescription?: string;
+  giftcardName?: string;
+  giftcardWinners?: number;
+  customReward?: string;
   status: string;
 }
 
@@ -82,10 +85,16 @@ function SurveyCard({ survey, currentUserNickname, onDelete }: {
   const responseRatio = (survey.currentResponses / survey.maxResponses) * 100;
   const isOwner = !!currentUserNickname && survey.creator.nickname === currentUserNickname;
 
-  const rewardLabel =
-    survey.rewardType === 'POINT'
-      ? `${(survey.rewardAmount ?? 0).toLocaleString()}P 지급`
-      : survey.rewardDescription ?? '보상 있음';
+  const rewardLabel = (() => {
+    if (survey.rewardType === 'POINT') {
+      return `${(survey.rewardAmount ?? 0).toLocaleString()}P 지급`;
+    } else if (survey.rewardType === 'GIFTCARD') {
+      return `${survey.giftcardName || '상품'} 추첨 (${survey.giftcardWinners || 0}명)`;
+    } else if (survey.rewardType === 'CUSTOM') {
+      return survey.customReward ?? '커스텀 보상';
+    }
+    return '보상 있음';
+  })();
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();

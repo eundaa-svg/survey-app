@@ -162,7 +162,11 @@ export default function SurveyDetailPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">응답 완료!</h2>
           <p className="text-gray-600 mb-2">감사합니다!</p>
           <p className="text-green-600 font-bold text-xl">
-            +{survey.rewardAmount || 0}P가 지급되었습니다!
+            {survey.rewardType === 'POINT'
+              ? `+${survey.rewardAmount || 0}P가 지급되었습니다!`
+              : survey.rewardType === 'GIFTCARD'
+              ? `${survey.giftcardName || '상품'} 추첨에 응모되었습니다!`
+              : '응답이 접수되었습니다!'}
           </p>
           <p className="text-gray-500 text-sm mt-4">곧 홈으로 돌아갑니다...</p>
         </div>
@@ -209,7 +213,13 @@ export default function SurveyDetailPage() {
             <Gift className="w-6 h-6 text-primary-600 flex-shrink-0" />
             <div>
               <p className="text-xs text-gray-500">보상</p>
-              <p className="text-lg font-bold text-gray-900">{survey.rewardAmount || 0}P</p>
+              <p className="text-lg font-bold text-gray-900">
+                {survey.rewardType === 'POINT'
+                  ? `${survey.rewardAmount || 0}P`
+                  : survey.rewardType === 'GIFTCARD'
+                  ? `${survey.giftcardName || '상품'}`
+                  : survey.customReward || '보상 있음'}
+              </p>
             </div>
           </CardBody>
         </Card>

@@ -25,6 +25,9 @@ export interface Survey {
   rewardType: string;
   rewardAmount?: number;
   rewardDescription?: string;
+  giftcardName?: string;
+  giftcardWinners?: number;
+  customReward?: string;
   status: string;
   creatorId: string;
   questions: Question[];

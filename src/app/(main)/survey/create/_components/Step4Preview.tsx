@@ -46,6 +46,16 @@ export default function Step4Preview() {
     try {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
+      // 보상 정보 확인
+      console.log('Step3 Reward Info:', {
+        rewardType: step3.rewardType,
+        rewardAmount: step3.rewardAmount,
+        giftcardName: step3.giftcardName,
+        giftcardWinners: step3.giftcardWinners,
+        rewardDescription: step3.rewardDescription,
+      });
+
+      const rewardType = step3.rewardType || 'POINT';
       const newSurvey = {
         id: 'survey_' + Date.now(),
         title: step1.title || '제목 없는 설문',
@@ -55,8 +65,11 @@ export default function Step4Preview() {
           nickname: currentUser.nickname || user?.nickname || '익명',
           department: currentUser.department || user?.department || '',
         },
-        rewardType: step3.rewardType || 'POINT',
-        rewardAmount: step3.rewardAmount || 100,
+        rewardType,
+        rewardAmount: rewardType === 'POINT' ? (step3.rewardAmount || 100) : 0,
+        giftcardName: rewardType === 'GIFTCARD' ? (step3.giftcardName || '') : '',
+        giftcardWinners: rewardType === 'GIFTCARD' ? (step3.giftcardWinners || 0) : 0,
+        customReward: rewardType === 'CUSTOM' ? (step3.rewardDescription || '') : '',
         estimatedMinutes: step1.estimatedMinutes || 5,
         deadline: step1.deadline
           ? new Date(step1.deadline).toISOString()
