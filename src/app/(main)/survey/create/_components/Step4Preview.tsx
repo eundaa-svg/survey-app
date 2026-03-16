@@ -1,20 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Confetti from '@/components/ui/Confetti';
 import { Card, CardBody, Badge, ProgressBar } from '@/components/ui';
 import { useSurveyCreateStore } from '@/stores/surveyCreateStore';
 import { useAuth } from '@/providers/AuthProvider';
 import { Gift, Clock, Calendar, Users, Home, CheckCircle } from 'lucide-react';
 
 export default function Step4Preview() {
-  const router = useRouter();
   const { step1, step2, step3, setCurrentStep } = useSurveyCreateStore();
   const { user } = useAuth();
   const [showConfirm, setShowConfirm] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
 
   const getDaysLeft = () => {
     if (!step1.deadline) return 0;
@@ -47,44 +42,49 @@ export default function Step4Preview() {
     setShowConfirm(true);
   };
 
-  const confirmPublish = async () => {
-    setPublishing(true);
-    setShowConfetti(true);
+  const confirmPublish = () => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
-    const newSurvey = {
-      id: 'survey_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      title: step1.title,
-      description: step1.description,
-      category: step1.category,
-      creator: { nickname: user?.nickname || '익명', department: user?.department || '미입력' },
-      rewardType: step3.rewardType,
-      rewardAmount: step3.rewardAmount,
-      estimatedMinutes: step1.estimatedMinutes,
-      deadline: step1.deadline
-        ? new Date(step1.deadline).toISOString()
-        : new Date(Date.now() + 14 * 86400000).toISOString(),
-      maxResponses: step1.maxResponses,
-      currentResponses: 0,
-      createdAt: new Date().toISOString(),
-      status: 'ACTIVE',
-      questions: step2.questions.map((q) => ({
-        ...q,
-        options: q.options?.map((o) => o.text) || [],
-      })),
-    };
+      const newSurvey = {
+        id: 'survey_' + Date.now(),
+        title: step1.title || '제목 없는 설문',
+        description: step1.description || '',
+        category: step1.category || '기타',
+        creator: {
+          nickname: currentUser.nickname || user?.nickname || '익명',
+          department: currentUser.department || user?.department || '',
+        },
+        rewardType: step3.rewardType || 'POINT',
+        rewardAmount: step3.rewardAmount || 100,
+        estimatedMinutes: step1.estimatedMinutes || 5,
+        deadline: step1.deadline
+          ? new Date(step1.deadline).toISOString()
+          : new Date(Date.now() + 7 * 86400000).toISOString(),
+        maxResponses: step1.maxResponses || 50,
+        currentResponses: 0,
+        createdAt: new Date().toISOString(),
+        status: 'ACTIVE',
+        questions: step2.questions.map((q) => ({
+          ...q,
+          options: q.options?.map((o) => o.text) || [],
+        })),
+      };
 
-    const existing = JSON.parse(localStorage.getItem('unisurvey_surveys') || '[]');
-    existing.unshift(newSurvey);
-    localStorage.setItem('unisurvey_surveys', JSON.stringify(existing));
+      const existing = JSON.parse(localStorage.getItem('unisurvey_surveys') || '[]');
+      existing.unshift(newSurvey);
+      localStorage.setItem('unisurvey_surveys', JSON.stringify(existing));
 
-    alert('설문이 발행되었습니다! 🎉');
-    window.location.href = '/';
+      alert('설문이 발행되었습니다! 🎉');
+      window.location.href = '/';
+    } catch (e) {
+      console.error('발행 에러:', e);
+      alert('발행에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   return (
     <div className="space-y-6">
-      {showConfetti && <Confetti />}
-
       {/* 미리보기 모드 배너 */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
         <div className="w-2 h-2 rounded-full bg-blue-500" />
@@ -312,17 +312,15 @@ export default function Step4Preview() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowConfirm(false)}
-                  disabled={publishing}
-                  className="flex-1 px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="flex-1 px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   취소
                 </button>
                 <button
                   onClick={confirmPublish}
-                  disabled={publishing}
-                  className="flex-1 px-6 py-2 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+                  className="flex-1 px-6 py-2 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-colors"
                 >
-                  {publishing ? '발행 중...' : '발행하기'}
+                  발행하기
                 </button>
               </div>
             </CardBody>
