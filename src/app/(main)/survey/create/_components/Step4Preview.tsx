@@ -7,7 +7,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { Gift, Clock, Calendar, Users, Home, CheckCircle } from 'lucide-react';
 
 export default function Step4Preview() {
-  const { step1, step2, step3, setCurrentStep } = useSurveyCreateStore();
+  const { step1, step2, step3, setCurrentStep, reset } = useSurveyCreateStore();
   const { user } = useAuth();
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -74,6 +74,13 @@ export default function Step4Preview() {
       const existing = JSON.parse(localStorage.getItem('unisurvey_surveys') || '[]');
       existing.unshift(newSurvey);
       localStorage.setItem('unisurvey_surveys', JSON.stringify(existing));
+
+      // 폼 데이터 초기화
+      reset();
+      localStorage.removeItem('survey-create-draft');
+      localStorage.removeItem('survey_draft');
+      localStorage.removeItem('survey_create_data');
+      localStorage.removeItem('surveyCreateStore');
 
       alert('설문이 발행되었습니다! 🎉');
       window.location.href = '/';
