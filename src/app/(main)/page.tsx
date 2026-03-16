@@ -282,9 +282,9 @@ export default function HomePage() {
         </div>
         <Button
           onClick={handleCreateSurvey}
-          className="bg-white text-primary-600 hover:bg-gray-100 px-6 py-3 rounded-full font-semibold flex items-center gap-2 flex-shrink-0"
+          className="bg-white text-primary-600 hover:bg-primary-50 px-7 py-3 rounded-full font-bold flex items-center gap-2 flex-shrink-0 shadow-md"
         >
-          <Plus size={20} />
+          <Plus size={20} className="text-primary-600" />
           설문 만들기
         </Button>
       </div>
